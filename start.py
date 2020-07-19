@@ -1,6 +1,6 @@
 # encoding: utf-8
 import numpy as np
-import cv2 as cv
+#import cv2 as cv
 from appium import webdriver
 import time
 import os
@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from appium.webdriver.common.mobileby import MobileBy
 from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.common.touch_actions import TouchActions
+import threading
 
 PATH = lambda path: os.path.abspath(
     os.path.join(
@@ -33,6 +34,21 @@ driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_w
 
 touch_action = TouchAction(driver)
 
+
+def double_tap_ele(try_count=5):
+    get_details = False
+    mobile_function = MobileFunction()
+
+    while try_count > 0:
+        touch_action.tap(x=780, y=2040, count=2).release().perform()
+        ele = mobile_function.is_element_visible(AndroidMobilePageObject.details_message())
+        if ele:
+            print("Get details messge")
+            print(ele.text)
+            break
+        try_count = try_count - 1
+
+
 class MobileFunction:
 
     webdriver_wait = WebDriverWait(driver, 30)
@@ -51,6 +67,12 @@ class MobileFunction:
 
     def wait_for_element_visible(self, locator):
         return self.webdriver_wait.until(EC.visibility_of_element_located(locator))
+
+    def is_element_visible(self, locator):
+        try:
+            return driver.find_element(locator[0], locator[1])
+        except Exception as err:
+            return False
 
     @staticmethod
     def get_rect(self, element):
@@ -112,5 +134,7 @@ class AndroidMobilePageObject:
     @staticmethod
     def details_message():
         return (MobileBy.ID, "com.tencent.mm:id/c9a")
+
+print(11)
 
 #https://www.cnblogs.com/BlueSkyyj/p/8651365.html
