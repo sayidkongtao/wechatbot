@@ -1,6 +1,6 @@
 # encoding: utf-8
 import numpy as np
-import cv2 as cv
+import cv2
 from appium import webdriver
 import time
 import os
@@ -18,67 +18,92 @@ PATH = lambda path: os.path.abspath(
     )
 )
 
-desired_caps_android_wechart = {
-    "platformName": "Android",
-    "platformVersion": "9",
-    "automationName": "Appium",
-    "appActivity": "com.tencent.mm.ui.LauncherUI",
-    "appPackage": "com.tencent.mm",
-    "deviceName": "AKC7N18907000186",
-    "newCommandTimeout": 7200,
-    "noReset": True
-}
 
-driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechart)
-
-touch_action = TouchAction(driver)
-
-
-def double_tap_ele(try_count=5, x=780, y=2040):
-    get_details = False
-    mobile_function = MobileFunction()
-
-    while try_count > 0:
-        touch_action.tap(x=x, y=y, count=2).release().perform()
-        ele = mobile_function.is_element_visible(AndroidMobilePageObject.details_message())
-        if ele:
-            print("Get details messge")
-            print(mobile_function.get_text(ele))
-            break
-        try_count = try_count - 1
-
-
-class MobileFunction:
-
-    webdriver_wait = WebDriverWait(driver, 30)
+class Utils:
 
     def __init__(self):
         pass
 
-    def click(self, element):
+    @staticmethod
+    def match_image(source_path, template_path, method=cv2.TM_CCOEFF_NORMED):
+        source = cv2.imread(source_path)
+        template = cv2.imread(template_path, 0)
+        source_gray = cv2.cvtColor(source, cv2.COLOR_BGR2GRAY)
+        result = cv2.matchTemplate(source_gray, template, method)
+        w, h = template.shape[::-1]
+
+        threshold = 0.8
+        loc = np.where(result >= threshold)
+
+        final_location = []
+
+        for pt in zip(*loc[::-1]):
+            # cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 1)
+            final_location.append({"x": pt[0], "y": pt[1], "width": w, "height": h})
+
+        return final_location
+
+
+class MobileFunction:
+
+    def __init__(self, driver):
+        self.driver = driver
+        self.webdriver_wait = WebDriverWait(self.driver, 30)
+
+    @staticmethod
+    def click(element):
         element.click()
 
-    def send_text(self, element, value):
+    @staticmethod
+    def send_text(element, value):
         element.send_keys(value)
 
-    def get_text(self, element):
+    @staticmethod
+    def get_text(element):
         return element.text
 
     def wait_for_element_visible(self, locator):
         return self.webdriver_wait.until(EC.visibility_of_element_located(locator))
 
+    @staticmethod
     def is_element_visible(self, locator):
         try:
-            return driver.find_element(locator[0], locator[1])
+            return self.driver.find_element(locator[0], locator[1])
         except Exception as err:
             return False
 
     @staticmethod
-    def get_rect(self, element):
+    def get_rect(element):
         return element.rect
 
     def right_or_left(self, element):
         pass
+
+    @staticmethod
+    def tap(x, y):
+        touch_action = TouchAction(driver)
+        touch_action.tap(x=x, y=y, count=1).release().perform()
+
+    def double_tap_ele_to_get_details_message(self, x, y, try_count=5):
+        message = None
+        touch_action = TouchAction(driver)
+        while try_count > 0:
+            touch_action.tap(x=x, y=y, count=2).release().perform()
+            ele = self.is_element_visible(AndroidMobilePageObject.details_message())
+            if ele:
+                print("Try to get details message")
+                message = self.get_text(ele)
+                print(message)
+                self.click(ele)
+                break
+            try_count = try_count - 1
+
+        if message:
+            print("Success to get the details message")
+        else:
+            print("Failed to get the details message")
+
+        return message
 
 
 class AndroidMobilePageObject:
@@ -134,8 +159,26 @@ class AndroidMobilePageObject:
     def details_message():
         return (MobileBy.ID, "com.tencent.mm:id/c9a")
 
-double_tap_ele()
 
-print(11)
+if __name__ == '__main__':
 
-#https://www.cnblogs.com/BlueSkyyj/p/8651365.html
+    desired_caps_android_wechart = {
+        "platformName": "Android",
+        "platformVersion": "9",
+        "automationName": "Appium",
+        "appActivity": "com.tencent.mm.ui.LauncherUI",
+        "appPackage": "com.tencent.mm",
+        "deviceName": "AKC7N18907000186",
+        "newCommandTimeout": 7200,
+        "noReset": True
+    }
+
+    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechart)
+
+    mobile_function = MobileFunction(driver)
+
+    current_screenshot = PATH(os.path.join("template", "current.png"))
+    driver.save_screenshot(current_screenshot)
+
+    location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huawei_p20", "image_1.png")))
+    print("11")
