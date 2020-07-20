@@ -1,15 +1,16 @@
-# encoding: utf-8
+# coding=utf-8
+import sys
 import numpy as np
 import cv2
 from appium import webdriver
 import time
 import os
-import shutil
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from appium.webdriver.common.mobileby import MobileBy
 from appium.webdriver.common.touch_action import TouchAction
-
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 PATH = lambda path: os.path.abspath(
     os.path.join(
@@ -65,12 +66,14 @@ class MobileFunction:
     def wait_for_element_visible(self, locator):
         return self.webdriver_wait.until(EC.visibility_of_element_located(locator))
 
-    @staticmethod
     def is_element_visible(self, locator):
         try:
             return self.driver.find_element(locator[0], locator[1])
         except Exception as err:
             return False
+
+    def find_elements(self, locator):
+        return self.driver.find_elements(locator[0], locator[1])
 
     @staticmethod
     def get_rect(element):
@@ -159,6 +162,47 @@ class AndroidMobilePageObject:
     def details_message():
         return (MobileBy.ID, "com.tencent.mm:id/c9a")
 
+    @staticmethod
+    def contact_photo():
+        return (MobileBy.ID, "com.tencent.mm:id/aku")
+
+
+class AndroidProcess:
+
+    def __init__(self, webdriver):
+        self.driver = webdriver
+        self.send_message_time = None
+        self.get_reply_time = None
+        self.mobile_function = MobileFunction(self.driver)
+
+    def go_into_volkswagen_official_account(self):
+        pass
+
+    def send_message_then_calculating_time_taken_to_reply(self, value):
+
+        ele_message = self.mobile_function.is_element_visible(AndroidMobilePageObject.message_btn())
+        if ele_message:
+            self.mobile_function.click(ele_message)
+
+        ele_message_input = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.message_input())
+        self.mobile_function.send_text(ele_message_input, value.decode("utf-8"))
+        ele_message_send_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.message_send_btn())
+        self.mobile_function.click(ele_message_send_btn)
+        time.sleep(0.1)
+        self.send_message_time = time.time()
+
+        retry_count = 10
+        while retry_count > 0:
+            contact_photos = self.mobile_function.find_elements(AndroidMobilePageObject.contact_photo())
+            if len(contact_photos) > 0 and self.mobile_function.get_rect(contact_photos[-1])["x"] < 500:
+                self.get_reply_time = time.time()
+                break
+        if self.get_reply_time:
+            print("Cost time is: " + str(self.get_reply_time - self.send_message_time))
+            self.get_reply_time = None
+        else:
+            print("Failed to get the cost time")
+
 
 if __name__ == '__main__':
 
@@ -170,15 +214,18 @@ if __name__ == '__main__':
         "appPackage": "com.tencent.mm",
         "deviceName": "AKC7N18907000186",
         "newCommandTimeout": 7200,
-        "noReset": True
+        "noReset": True,
+        'chromeOptions': {'androidProcess': 'com.tencent.mm:tools'}
     }
 
     driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechart)
 
-    mobile_function = MobileFunction(driver)
+    android_process = AndroidProcess(driver)
+    android_process.send_message_then_calculating_time_taken_to_reply("你好")
+    #mobile_function = MobileFunction(driver)
 
-    current_screenshot = PATH(os.path.join("template", "current.png"))
-    driver.save_screenshot(current_screenshot)
+    #current_screenshot = PATH(os.path.join("template", "current.png"))
+    #driver.save_screenshot(current_screenshot)
 
-    location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huawei_p20", "image_1.png")))
+    #location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huawei_p20", "image_1.png")))
     print("11")
