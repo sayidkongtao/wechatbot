@@ -1,6 +1,6 @@
 # encoding: utf-8
 import numpy as np
-#import cv2 as cv
+import cv2 as cv
 from appium import webdriver
 import time
 import os
@@ -9,8 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from appium.webdriver.common.mobileby import MobileBy
 from appium.webdriver.common.touch_action import TouchAction
-from selenium.webdriver.common.touch_actions import TouchActions
-import threading
+
 
 PATH = lambda path: os.path.abspath(
     os.path.join(
@@ -35,16 +34,16 @@ driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_w
 touch_action = TouchAction(driver)
 
 
-def double_tap_ele(try_count=5):
+def double_tap_ele(try_count=5, x=780, y=2040):
     get_details = False
     mobile_function = MobileFunction()
 
     while try_count > 0:
-        touch_action.tap(x=780, y=2040, count=2).release().perform()
+        touch_action.tap(x=x, y=y, count=2).release().perform()
         ele = mobile_function.is_element_visible(AndroidMobilePageObject.details_message())
         if ele:
             print("Get details messge")
-            print(ele.text)
+            print(mobile_function.get_text(ele))
             break
         try_count = try_count - 1
 
@@ -134,6 +133,8 @@ class AndroidMobilePageObject:
     @staticmethod
     def details_message():
         return (MobileBy.ID, "com.tencent.mm:id/c9a")
+
+double_tap_ele()
 
 print(11)
 
