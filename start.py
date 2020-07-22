@@ -136,7 +136,7 @@ class AndroidMobilePageObject:
 
     @staticmethod
     def target_item():
-        return (MobileBy.XPATH, "//*[@text='大众汽车金融中国测试号']")
+        return (MobileBy.XPATH, "//android.widget.TextView[@text='大众汽车金融中国测试号']")
 
     @staticmethod
     def title_in_chat():
@@ -176,7 +176,32 @@ class AndroidProcess:
         self.mobile_function = MobileFunction(self.driver)
 
     def go_into_volkswagen_official_account(self):
-        pass
+        ele_address_book_btn = self.mobile_function.wait_for_element_visible(
+            AndroidMobilePageObject.address_book_in_home_page()
+        )
+        self.mobile_function.click(ele_address_book_btn)
+
+        ele_gongzong_number_item = self.mobile_function.wait_for_element_visible(
+            AndroidMobilePageObject.gongzong_number_item()
+        )
+        self.mobile_function.click(ele_gongzong_number_item)
+
+        ele_search_in_gongzong_page = self.mobile_function.wait_for_element_visible(
+            AndroidMobilePageObject.search_in_gongzong_page()
+        )
+        self.mobile_function.click(ele_search_in_gongzong_page)
+
+        ele_search_input_in_gongzong_page = self.mobile_function.wait_for_element_visible(
+            AndroidMobilePageObject.search_input_in_gongzong_page()
+        )
+        self.mobile_function.send_text(ele_search_input_in_gongzong_page, "大众汽车金融中国测试号".decode("utf-8"))
+
+        ele_target_item = self.mobile_function.wait_for_element_visible(
+            AndroidMobilePageObject.target_item()
+        )
+        self.mobile_function.click(ele_target_item)
+
+        ele_title_in_chat = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
 
     def send_message_then_calculating_time_taken_to_reply(self, value):
 
@@ -220,8 +245,8 @@ if __name__ == '__main__':
 
     driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechart)
 
-    android_process = AndroidProcess(driver)
-    android_process.send_message_then_calculating_time_taken_to_reply("你好")
+    #android_process = AndroidProcess(driver)
+    #android_process.send_message_then_calculating_time_taken_to_reply("你好")
     #mobile_function = MobileFunction(driver)
 
     #current_screenshot = PATH(os.path.join("template", "current.png"))
@@ -229,3 +254,6 @@ if __name__ == '__main__':
 
     #location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huawei_p20", "image_1.png")))
     print("11")
+    android_process = AndroidProcess(driver)
+    android_process.go_into_volkswagen_official_account()
+
