@@ -82,14 +82,13 @@ class MobileFunction:
     def right_or_left(self, element):
         pass
 
-    @staticmethod
-    def tap(x, y):
-        touch_action = TouchAction(driver)
+    def tap(self, x, y):
+        touch_action = TouchAction(self.driver)
         touch_action.tap(x=x, y=y, count=1).release().perform()
 
     def double_tap_ele_to_get_details_message(self, x, y, try_count=5):
         message = None
-        touch_action = TouchAction(driver)
+        touch_action = TouchAction(self.driver)
         while try_count > 0:
             touch_action.tap(x=x, y=y, count=2).release().perform()
             ele = self.is_element_visible(AndroidMobilePageObject.details_message())
@@ -243,17 +242,17 @@ if __name__ == '__main__':
         'chromeOptions': {'androidProcess': 'com.tencent.mm:tools'}
     }
 
-    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechart)
+    # driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechart)
 
     #android_process = AndroidProcess(driver)
     #android_process.send_message_then_calculating_time_taken_to_reply("你好")
     #mobile_function = MobileFunction(driver)
 
-    #current_screenshot = PATH(os.path.join("template", "current.png"))
+    current_screenshot = PATH(os.path.join("screenshot", "case1.png"))
     #driver.save_screenshot(current_screenshot)
 
-    #location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huawei_p20", "image_1.png")))
+    location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huaweip20pro", "case1_link1.png")))
     print("11")
-    android_process = AndroidProcess(driver)
-    android_process.go_into_volkswagen_official_account()
+    #android_process = AndroidProcess(driver)
+    #android_process.go_into_volkswagen_official_account()
 
