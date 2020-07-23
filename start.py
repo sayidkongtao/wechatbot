@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from appium.webdriver.common.mobileby import MobileBy
 from appium.webdriver.common.touch_action import TouchAction
+from openpyxl import load_workbook
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -43,6 +44,15 @@ class Utils:
             final_location.append({"x": pt[0], "y": pt[1], "width": w, "height": h})
 
         return final_location
+
+    @staticmethod
+    def load_data_from_excel(file_name):
+        wb = load_workbook(file_name)
+        work_sheet = wb[wb.sheetnames[0]]
+        test_data = []
+        for row in work_sheet.values:
+            test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]))
+        return test_data
 
 
 class MobileFunction:
@@ -228,6 +238,21 @@ class AndroidProcess:
             print("Failed to get the cost time")
 
 
+class CaseDataModel:
+
+    def __init__(self, case_no, send_message, reply, link_template_screenshot_folder, link_template_screenshot,
+                 reply_from_script, link_from_script, screenshot_from_script, link_screenshot_from_script):
+        self.case_no = case_no
+        self.send_message = send_message
+        self.reply = reply
+        self.link_template_screenshot_folder = link_template_screenshot_folder
+        self.link_template_screenshot = link_template_screenshot
+        self.reply_from_script = reply_from_script
+        self.link_from_script = link_from_script
+        self.screenshot_from_script = screenshot_from_script
+        self.link_screenshot_from_script = link_screenshot_from_script
+
+
 if __name__ == '__main__':
 
     desired_caps_android_wechart = {
@@ -248,11 +273,13 @@ if __name__ == '__main__':
     #android_process.send_message_then_calculating_time_taken_to_reply("你好")
     #mobile_function = MobileFunction(driver)
 
-    current_screenshot = PATH(os.path.join("screenshot", "case1.png"))
+    #current_screenshot = PATH(os.path.join("screenshot", "case1.png"))
     #driver.save_screenshot(current_screenshot)
 
-    location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huaweip20pro", "case1_link1.png")))
-    print("11")
+    #location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huaweip20pro", "case1_link1.png")))
+
     #android_process = AndroidProcess(driver)
     #android_process.go_into_volkswagen_official_account()
+    test_data_list = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
+    print("Finished")
 
