@@ -273,10 +273,10 @@ if __name__ == '__main__':
     #android_process.send_message_then_calculating_time_taken_to_reply("你好")
     #mobile_function = MobileFunction(driver)
 
-    #current_screenshot = PATH(os.path.join("screenshot", "case1.png"))
+    current_screenshot = PATH(os.path.join("screenshot", "case1.png"))
     #driver.save_screenshot(current_screenshot)
 
-    #location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huaweip20pro", "case1_link1.png")))
+    location = Utils.match_image(current_screenshot, PATH(os.path.join("template", "huaweip20pro", "case1_link1.png")))
 
     #android_process = AndroidProcess(driver)
     #android_process.go_into_volkswagen_official_account()
