@@ -12,7 +12,7 @@ PATH = lambda path: os.path.abspath(
     )
 )
 
-query_image = cv2.imread(PATH(r"template\huaweip20pro\case1_link3.png"), 0)
+query_image = cv2.imread(PATH(r"template\huaweip20pro\case1_link6.png"), 0)
 # 读取要匹配的灰度照片
 training_image = cv2.imread(PATH(r"screenshot\case1.png"), 0)
 
@@ -56,9 +56,9 @@ def fun2():
     matches = flann.knnMatch(des1, des2, k=2)
     # store all the good matches as per Lowe's ratio test.
     good = []
-    # 舍弃大于0.8的匹配
+    # 舍弃小于0.7的匹配
     for m, n in matches:
-        if m.distance < 0.8 * n.distance:
+        if m.distance > 0.7 * n.distance:
             good.append(m)
 
     if len(good) > MIN_MATCH_COUNT:
