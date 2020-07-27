@@ -120,6 +120,7 @@ class Utils:
         work_sheet = wb[wb.sheetnames[0]]
         test_data = []
         for row in work_sheet.values:
+            # todo: 在这里初始化不需要的值
             test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]))
         return test_data
 
@@ -391,9 +392,8 @@ class CaseDataModel:
         self.link_screenshot_from_script = link_screenshot_from_script
 
 
-if __name__ == '__main__':
-
-    desired_caps_android_wechart = {
+def android_steps():
+    desired_caps_android_wechat = {
         "platformName": "Android",
         "platformVersion": "10",
         "automationName": "Appium",
@@ -409,7 +409,7 @@ if __name__ == '__main__':
     test_data_list_copy = test_data_list[1:]
     print("Total cases: " + str(len(test_data_list_copy)))
 
-    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechart)
+    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
     android_process = AndroidProcess(driver)
 
     android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
@@ -422,7 +422,12 @@ if __name__ == '__main__':
             # todo: 需要判断是否回到主界面
 
     # todo: 数据写进excel
+    # write_data_into_excel()
+    print("write_data_into_excel")
 
+
+if __name__ == '__main__':
+    android_steps()
     #android_process.send_message_then_calculating_time_taken_to_reply("你好")
     #mobile_function = MobileFunction(driver)
 
