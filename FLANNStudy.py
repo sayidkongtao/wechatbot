@@ -67,22 +67,20 @@ def fun2():
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
         # 计算变换矩阵和MASK
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-        matchesMask = mask.ravel().tolist()
+        # matchesMask = mask.ravel().tolist()
         h, w = query_image.shape
         # 使用得到的变换矩阵对原图像的四个角进行变换，获得在目标图像上对应的坐标
         pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
         dst = cv2.perspectiveTransform(pts, M)
         cv2.polylines(training_image, [np.int32(dst)], True, 0, 2, cv2.LINE_AA)
+        print 3
     else:
         print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
-        matchesMask = None
-    draw_params = dict(matchColor=(0, 255, 0),
-                       singlePointColor=None,
-                       matchesMask=matchesMask,
-                       flags=2)
-    result = cv2.drawMatches(query_image, kp1, training_image, kp2, good, None, **draw_params)
-    plt.imshow(result, 'gray')
-    plt.show()
+    #     matchesMask = None
+    # draw_params = dict(matchColor=(0, 255, 0), singlePointColor=None, matchesMask=matchesMask, flags=2)
+    # result = cv2.drawMatches(query_image, kp1, training_image, kp2, good, None, **draw_params)
+    # plt.imshow(result, 'gray')
+    # plt.show()
 
 
 if __name__ == '__main__':
