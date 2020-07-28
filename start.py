@@ -400,6 +400,7 @@ class AndroidProcess:
             y = rect["y"] + rect["height"] - 20
             message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y, try_count=20)
             # F 给reply_from_script赋值
+            # todo:处理回复消息中的link, 需要处理掉link
             data.reply_from_script = message
             # 退回到聊天窗口
             self.mobile_function.tap(x, y)
