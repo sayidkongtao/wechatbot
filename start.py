@@ -11,7 +11,8 @@ from appium.webdriver.common.mobileby import MobileBy
 from appium.webdriver.common.touch_action import TouchAction
 from openpyxl import load_workbook
 import logging
-
+import re
+from urllib import unquote
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -22,10 +23,20 @@ PATH = lambda path: os.path.abspath(
     )
 )
 
-logging.basicConfig(filename=PATH(os.path.join("log", "example.log")),
-                    level=logging.INFO,
-                    format=
-                    '%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+
+# 创建一个logging对象
+logger = logging.getLogger()
+# 创建一个文件对象  创建一个文件对象,以UTF-8 的形式写入 标配版.log 文件中
+fh = logging.FileHandler(PATH(os.path.join("log", "example.log")), encoding='utf-8')
+# 创建一个屏幕对象
+sh = logging.StreamHandler()
+# 配置显示格式  可以设置两个配置格式  分别绑定到文件和屏幕上
+formatter = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+fh.setFormatter(formatter)  # 将格式绑定到两个对象上
+sh.setFormatter(formatter)
+
+logger.addHandler(fh)   # 将两个句柄绑定到logger
+logger.addHandler(sh)
 
 
 class Utils:
@@ -113,7 +124,7 @@ class Utils:
             return {"x": (np.int32(dst[2][0])[0] + np.int32(dst[0][0])[0]) / 2, "y": (np.int32(dst[2][0])[1] +
                                                                                       np.int32(dst[0][0])[1]) / 2}
         else:
-            print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
+            logger.error("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
             return None
 
     @staticmethod
@@ -206,23 +217,23 @@ class MobileFunction:
     def double_tap_ele_to_get_details_message(self, x, y, try_count=20):
         message = None
         touch_action = TouchAction(self.driver)
-        print("The details_message coordinate is {} {}".format(x,y))
+        logger.info("The details_message coordinate is {} {}".format(x,y))
         while try_count > 0:
             touch_action.tap(x=x, y=y, count=2).release().perform()
             ele = self.is_element_visible(AndroidMobilePageObject.details_message())
             if ele:
-                print("Try to get details message")
+                logger.info("Try to get details message")
                 message = self.get_text(ele)
-                print(message)
+                logger.info(message)
                 self.click(ele)
                 break
             try_count = try_count - 1
             time.sleep(1)
 
         if message:
-            print("Success to get the details message")
+            logger.info("Success to get the details message")
         else:
-            print("Failed to get the details message")
+            logger.error("Failed to get the details message")
 
         return message
 
@@ -331,8 +342,8 @@ class AndroidProcess:
 
     def send_message_then_calculating_time_taken_to_reply(self, value):
         value = value.decode("utf-8")
-        print("Send the message: " + value)
-        self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
+        logger.info("Send the message: " + value)
+        # self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
         time.sleep(1)
         ele_message = self.mobile_function.is_element_visible(AndroidMobilePageObject.message_btn())
         if ele_message:
@@ -352,11 +363,11 @@ class AndroidProcess:
                 break
         if self.get_reply_time:
             cost_time = str(self.get_reply_time - self.send_message_time)
-            print("Cost time is: " + cost_time)
+            logger.info("Cost time is: " + cost_time)
             self.get_reply_time = None
             return cost_time
         else:
-            print("Failed to get the cost time after 30s")
+            logger.error("Failed to get the cost time after 30s")
             return None
 
     def deal_with_test_data(self, data):
@@ -365,7 +376,7 @@ class AndroidProcess:
         :param data:
         :return:
         """
-        print("Start to deal with case: " + data.case_no)
+        logger.info("Start to deal with case: " + data.case_no)
 
         # 发送的信息并获取回复时间
         result_reply = self.send_message_then_calculating_time_taken_to_reply(data.send_message)
@@ -417,15 +428,15 @@ class AndroidProcess:
                         self.mobile_function.click(back_btn)
                         self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
                     except Exception as e:
-                        print(e)
+                        logger.error(e)
                         back_btn = self.mobile_function.is_element_visible(AndroidMobilePageObject.back_btn())
                         if back_btn:
                             self.mobile_function.click(back_btn)
 
-                        print("No link template matched for: " + current_link_screenshot)
+                        logger.error("No link template matched for: " + current_link_screenshot)
                         current_link_screenshot = "No link template matched for: " + current_link_screenshot
                 else:
-                    print("No link template matched for: " + current_link_screenshot)
+                    logger.error("No link template matched for: " + current_link_screenshot)
                     current_link_screenshot = "No link template matched for: " + current_link_screenshot
 
                 link_screenshot_flag = link_screenshot_flag + 1
@@ -479,7 +490,7 @@ def android_steps():
     # 1. 从excel读取数据
     test_data_list = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
     test_data_list_copy = test_data_list[1:]
-    print("Total cases: " + str(len(test_data_list_copy)))
+    logger.info("Total cases: " + str(len(test_data_list_copy)))
 
     driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
     android_process = AndroidProcess(driver)
@@ -490,17 +501,23 @@ def android_steps():
     # 3. 处理消息
     for test_data in test_data_list_copy:
         try:
+            # 需要判断是否回到主界面
+            try:
+                android_process.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
+            except Exception as e:
+                driver.launch_app()
+                android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+
             android_process.deal_with_test_data(test_data)
         except Exception as e:
-            print(e)
-            # 需要判断是否回到主界面
+            logger.info(e)
 
-    #数据写进excel
+    # 数据写进excel
     Utils.write_data_into_excel(PATH("test_case_example.xlsx"), test_data_list_copy)
-    print("write_data_into_excel")
+    logger.info("write_data_into_excel")
 
 
 if __name__ == '__main__':
     clean_data()
     android_steps()
-    print("Finished: ")
+    logger.info("Finished: ")
