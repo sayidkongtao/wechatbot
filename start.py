@@ -134,7 +134,7 @@ class Utils:
                 flag_count = flag_count + 1
             else:
                 test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], None, None, None, None, None))
-        wb.save()
+        wb.close()
         return test_data
 
     @staticmethod
@@ -203,9 +203,10 @@ class MobileFunction:
         touch_action = TouchAction(self.driver)
         touch_action.tap(x=x, y=y, count=1).release().perform()
 
-    def double_tap_ele_to_get_details_message(self, x, y, try_count=5):
+    def double_tap_ele_to_get_details_message(self, x, y, try_count=20):
         message = None
         touch_action = TouchAction(self.driver)
+        print("The details_message coordinate is {} {}".format(x,y))
         while try_count > 0:
             touch_action.tap(x=x, y=y, count=2).release().perform()
             ele = self.is_element_visible(AndroidMobilePageObject.details_message())
@@ -216,6 +217,7 @@ class MobileFunction:
                 self.click(ele)
                 break
             try_count = try_count - 1
+            time.sleep(1)
 
         if message:
             print("Success to get the details message")
@@ -330,6 +332,8 @@ class AndroidProcess:
     def send_message_then_calculating_time_taken_to_reply(self, value):
         value = value.decode("utf-8")
         print("Send the message: " + value)
+        self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
+        time.sleep(1)
         ele_message = self.mobile_function.is_element_visible(AndroidMobilePageObject.message_btn())
         if ele_message:
             self.mobile_function.click(ele_message)
@@ -341,8 +345,7 @@ class AndroidProcess:
         time.sleep(0.1)
         self.send_message_time = time.time()
 
-        retry_count = 10
-        while retry_count > 0:
+        while time.time() - self.send_message_time < 30:
             contact_photos = self.mobile_function.find_elements(AndroidMobilePageObject.contact_photo())
             if len(contact_photos) > 0 and self.mobile_function.get_rect(contact_photos[-1])["x"] < 500:
                 self.get_reply_time = time.time()
@@ -353,7 +356,7 @@ class AndroidProcess:
             self.get_reply_time = None
             return cost_time
         else:
-            print("Failed to get the cost time after 10 times retry")
+            print("Failed to get the cost time after 30s")
             return None
 
     def deal_with_test_data(self, data):
@@ -370,7 +373,7 @@ class AndroidProcess:
             # J 给reply_cost_time_from_script赋值
             data.reply_cost_time_from_script = result_reply
         else:
-            data.reply_cost_time = "Failed to get the cost time after 10 times retry"
+            data.reply_cost_time = "Failed to get the cost time after 30s"
 
         # 不管获取消息成功与否，都进行截图
         current_screenshot = PATH(os.path.join("screenshot", "case" + str(data.case_no) + ".png"))
@@ -380,47 +383,57 @@ class AndroidProcess:
 
         # 获取回复的信息
         if result_reply:
-            contact_photos = self.mobile_function.find_elements(AndroidMobilePageObject.contact_photo())
-            rect = self.mobile_function.get_rect(contact_photos[-1])
-            x = rect["x"] + rect["width"] - 10
-            y = rect["y"] + rect["height"] - 10
-            message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y)
+            latest_message = self.mobile_function.find_elements(AndroidMobilePageObject.latest_message())
+            rect = self.mobile_function.get_rect(latest_message[-1])
+            x = rect["x"] + rect["width"] - 20
+            y = rect["y"] + rect["height"] - 20
+            message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y, try_count=20)
             # F 给reply_from_script赋值
             data.reply_from_script = message
             # 退回到聊天窗口
             self.mobile_function.tap(x, y)
 
-        # 处理回复消息中的link
-        link_template_screenshot_list = data.link_template_screenshot.split("\n")
-        link_screenshot_flag = 1
-        link_screenshot_list = []
-        for link_template_screenshot in link_template_screenshot_list:
-            # 获取 link样例图片在原图中的坐标
-            loc = Utils.match_image_by_flann_func(current_screenshot,
-                                                  PATH(os.path.join("template", "common", link_template_screenshot)))
+            # 处理回复消息中的link
+            link_template_screenshot_list = data.link_template_screenshot.split("\n")
+            link_screenshot_flag = 1
+            link_screenshot_list = []
+            for link_template_screenshot in link_template_screenshot_list:
+                # 获取 link样例图片在原图中的坐标
+                loc = Utils.match_image_by_flann_func(current_screenshot,
+                                                      PATH(os.path.join("template", "common", link_template_screenshot)))
 
-            current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
-                                                                                            link_screenshot_flag))
-            # 点击匹配到的link
-            if loc:
-                self.mobile_function.tap(loc["x"], loc["y"])
-                # 等待页面加载
-                time.sleep(5)
-                self.mobile_function.save_screenshot_as_png(PATH(current_link_screenshot))
+                current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
+                                                                                                link_screenshot_flag))
+                # 点击匹配到的link
+                if loc:
+                    try:
+                        self.mobile_function.tap(loc["x"], loc["y"])
+                        # 等待页面加载
+                        time.sleep(5)
+                        self.mobile_function.save_screenshot_as_png(PATH(current_link_screenshot))
 
-                # 从link页面返回到消息界面
-                back_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.back_btn())
-                self.mobile_function.click(back_btn)
-            else:
-                print("No link template matched for: " + current_link_screenshot)
-                current_link_screenshot = "No link template matched for: " + current_link_screenshot
+                        # 从link页面返回到消息界面
+                        back_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.back_btn())
+                        self.mobile_function.click(back_btn)
+                        self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
+                    except Exception as e:
+                        print(e)
+                        back_btn = self.mobile_function.is_element_visible(AndroidMobilePageObject.back_btn())
+                        if back_btn:
+                            self.mobile_function.click(back_btn)
 
-            link_screenshot_flag = link_screenshot_flag + 1
-            link_screenshot_list.append(current_link_screenshot)
+                        print("No link template matched for: " + current_link_screenshot)
+                        current_link_screenshot = "No link template matched for: " + current_link_screenshot
+                else:
+                    print("No link template matched for: " + current_link_screenshot)
+                    current_link_screenshot = "No link template matched for: " + current_link_screenshot
 
-        if len(link_screenshot_list) > 0:
-            # I 给link_screenshot_from_script赋值
-            data.link_screenshot_from_script = "\n".join(link_screenshot_list)
+                link_screenshot_flag = link_screenshot_flag + 1
+                link_screenshot_list.append(current_link_screenshot)
+
+            if len(link_screenshot_list) > 0:
+                # I 给link_screenshot_from_script赋值
+                data.link_screenshot_from_script = "\n".join(link_screenshot_list)
 
     def _init_test_data(self, data):
         pass
@@ -479,28 +492,15 @@ def android_steps():
         try:
             android_process.deal_with_test_data(test_data)
         except Exception as e:
-            print(str(e.message))
+            print(e)
             # 需要判断是否回到主界面
 
-    # todo: 数据写进excel
-    # write_data_into_excel()
+    #数据写进excel
+    Utils.write_data_into_excel(PATH("test_case_example.xlsx"), test_data_list_copy)
     print("write_data_into_excel")
 
 
 if __name__ == '__main__':
     clean_data()
     android_steps()
-    # android_process.send_message_then_calculating_time_taken_to_reply("你好")
-    # mobile_function = MobileFunction(driver)
-
-    # current_screenshot = PATH(os.path.join("screenshot", "case1.png"))
-    # driver.save_screenshot(current_screenshot)
-
-    # location = Utils.match_image_by_match_template_func(current_screenshot, PATH(os.path.join("template", "huaweip20pro", "case1_link1.png")))
-
-    # android_process = AndroidProcess(driver)
-    # android_process.go_into_volkswagen_official_account()
-    # a = time.time()
-    #
-    # b = time.time()
     print("Finished: ")

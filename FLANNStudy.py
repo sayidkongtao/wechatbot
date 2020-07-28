@@ -12,9 +12,9 @@ PATH = lambda path: os.path.abspath(
     )
 )
 
-query_image = cv2.imread(PATH(r"template\huaweip20pro\case1_link6.png"), 0)
+query_image = cv2.imread(PATH(r"template/common/6.png"), 0)
 # 读取要匹配的灰度照片
-training_image = cv2.imread(PATH(r"screenshot\case1.png"), 0)
+training_image = cv2.imread(PATH(r"screenshot/case1.png"), 0)
 
 
 # 基于FLANN的匹配器(FLANN based Matcher)描述特征点
@@ -51,7 +51,7 @@ def fun2():
     # 创建设置FLANN匹配
     FLANN_INDEX_KDTREE = 0
     index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-    search_params = dict(checks=50)
+    search_params = dict(checks=100)
     flann = cv2.FlannBasedMatcher(index_params, search_params)
     matches = flann.knnMatch(des1, des2, k=2)
     # store all the good matches as per Lowe's ratio test.
@@ -60,27 +60,26 @@ def fun2():
     for m, n in matches:
         if m.distance > 0.7 * n.distance:
             good.append(m)
-
+    print("Total point is " + str(len(good)))
     if len(good) > MIN_MATCH_COUNT:
         # 获取关键点的坐标
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
         # 计算变换矩阵和MASK
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-        # matchesMask = mask.ravel().tolist()
+        matchesMask = mask.ravel().tolist()
         h, w = query_image.shape
         # 使用得到的变换矩阵对原图像的四个角进行变换，获得在目标图像上对应的坐标
         pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
         dst = cv2.perspectiveTransform(pts, M)
         cv2.polylines(training_image, [np.int32(dst)], True, 0, 2, cv2.LINE_AA)
-        print 3
     else:
         print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
-    #     matchesMask = None
-    # draw_params = dict(matchColor=(0, 255, 0), singlePointColor=None, matchesMask=matchesMask, flags=2)
-    # result = cv2.drawMatches(query_image, kp1, training_image, kp2, good, None, **draw_params)
-    # plt.imshow(result, 'gray')
-    # plt.show()
+        matchesMask = None
+    draw_params = dict(matchColor=(0, 255, 0), singlePointColor=None, matchesMask=matchesMask, flags=2)
+    result = cv2.drawMatches(query_image, kp1, training_image, kp2, good, None, **draw_params)
+    plt.imshow(result, 'gray')
+    plt.show()
 
 
 if __name__ == '__main__':
