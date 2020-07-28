@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from appium.webdriver.common.mobileby import MobileBy
 from appium.webdriver.common.touch_action import TouchAction
 from openpyxl import load_workbook
+import logging
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -20,6 +21,11 @@ PATH = lambda path: os.path.abspath(
         path
     )
 )
+
+logging.basicConfig(filename=PATH(os.path.join("log", "example.log")),
+                    level=logging.INFO,
+                    format=
+                    '%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
 
 class Utils:
