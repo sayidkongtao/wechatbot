@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from appium.webdriver.common.mobileby import MobileBy
 from appium.webdriver.common.touch_action import TouchAction
 from openpyxl import load_workbook
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -56,8 +57,8 @@ class Utils:
             final_location.append({"x": pt[0], "y": pt[1], "width": w, "height": h})
 
         if len(final_location) > 0:
-            return {"x": final_location[0]["x"] + final_location[0]["width"]/2,
-                    "y": final_location[0]["y"] + final_location[0]["height"]/2}
+            return {"x": final_location[0]["x"] + final_location[0]["width"] / 2,
+                    "y": final_location[0]["y"] + final_location[0]["height"] / 2}
         else:
             return None
 
@@ -103,8 +104,8 @@ class Utils:
             pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
             dst = cv2.perspectiveTransform(pts, M)
             loc = (np.int32(dst[0][0]), np.int32(dst[2][0]))
-            return {"x": (np.int32(dst[2][0])[0] + np.int32(dst[0][0])[0])/2, "y": (np.int32(dst[2][0])[1] +
-                                                                                    np.int32(dst[0][0])[1])/2}
+            return {"x": (np.int32(dst[2][0])[0] + np.int32(dst[0][0])[0]) / 2, "y": (np.int32(dst[2][0])[1] +
+                                                                                      np.int32(dst[0][0])[1]) / 2}
         else:
             print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
             return None
@@ -119,10 +120,36 @@ class Utils:
         wb = load_workbook(file_name)
         work_sheet = wb[wb.sheetnames[0]]
         test_data = []
+        flag_count = 0
         for row in work_sheet.values:
-            # todo: 在这里初始化不需要的值
-            test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]))
+            if flag_count == 0:
+                test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8],
+                                               row[9]))
+                flag_count = flag_count + 1
+            else:
+                test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], None, None, None, None, None))
+        wb.save()
         return test_data
+
+    @staticmethod
+    def write_data_into_excel(file_name, data_list, start_row=2):
+        """
+
+        :param file_name:
+        :param data_list:
+        :param start_row:
+        :return:
+        """
+        wb = load_workbook(file_name)
+        work_sheet = wb[wb.sheetnames[0]]
+        for data in data_list:
+            work_sheet["F" + str(start_row)] = data.reply_from_script
+            work_sheet["G" + str(start_row)] = data.link_from_script
+            work_sheet["H" + str(start_row)] = data.screenshot_from_script
+            work_sheet["I" + str(start_row)] = data.link_screenshot_from_script
+            work_sheet["J" + str(start_row)] = data.reply_cost_time_from_script
+            start_row = start_row + 1
+        wb.save(file_name)
 
 
 class MobileFunction:
@@ -334,13 +361,16 @@ class AndroidProcess:
         # 发送的信息并获取回复时间
         result_reply = self.send_message_then_calculating_time_taken_to_reply(data.send_message)
         if result_reply:
-            data.reply_cost_time = result_reply
+            # J 给reply_cost_time_from_script赋值
+            data.reply_cost_time_from_script = result_reply
         else:
             data.reply_cost_time = "Failed to get the cost time after 10 times retry"
 
         # 不管获取消息成功与否，都进行截图
-        current_screenshot = PATH(os.path.join("screenshot", "case" + data.case_no + ".png"))
+        current_screenshot = PATH(os.path.join("screenshot", "case" + str(data.case_no) + ".png"))
         self.mobile_function.save_screenshot_as_png(current_screenshot)
+        # H 给screenshot_from_script赋值
+        data.screenshot_from_script = os.path.join("screenshot", "case" + str(data.case_no) + ".png")
 
         # 获取回复的信息
         if result_reply:
@@ -349,29 +379,42 @@ class AndroidProcess:
             x = rect["x"] + rect["width"] - 10
             y = rect["y"] + rect["height"] - 10
             message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y)
-            data.reply = message
+            # F 给reply_from_script赋值
+            data.reply_from_script = message
             # 退回到聊天窗口
             self.mobile_function.tap(x, y)
 
         # 处理回复消息中的link
         link_template_screenshot_list = data.link_template_screenshot.split("\n")
+        link_screenshot_flag = 1
+        link_screenshot_list = []
         for link_template_screenshot in link_template_screenshot_list:
             # 获取 link样例图片在原图中的坐标
             loc = Utils.match_image_by_flann_func(current_screenshot,
-                                                PATH(os.path.join("template", "common", link_template_screenshot)))
+                                                  PATH(os.path.join("template", "common", link_template_screenshot)))
+
+            current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
+                                                                                            link_screenshot_flag))
             # 点击匹配到的link
             if loc:
                 self.mobile_function.tap(loc["x"], loc["y"])
                 # 等待页面加载
                 time.sleep(5)
-                # todo: 截图
-                # self.mobile_function.save_screenshot_as_png(current_screenshot)
+                self.mobile_function.save_screenshot_as_png(PATH(current_link_screenshot))
 
                 # 从link页面返回到消息界面
                 back_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.back_btn())
                 self.mobile_function.click(back_btn)
             else:
-                print("No link template matched")
+                print("No link template matched for: " + current_link_screenshot)
+                current_link_screenshot = "No link template matched for: " + current_link_screenshot
+
+            link_screenshot_flag = link_screenshot_flag + 1
+            link_screenshot_list.append(current_link_screenshot)
+
+        if len(link_screenshot_list) > 0:
+            # I 给link_screenshot_from_script赋值
+            data.link_screenshot_from_script = "\n".join(link_screenshot_list)
 
     def _init_test_data(self, data):
         pass
@@ -380,7 +423,8 @@ class AndroidProcess:
 class CaseDataModel:
 
     def __init__(self, case_no, send_message, reply, link_template_screenshot_folder, link_template_screenshot,
-                 reply_from_script, link_from_script, screenshot_from_script, link_screenshot_from_script):
+                 reply_from_script, link_from_script, screenshot_from_script, link_screenshot_from_script,
+                 reply_cost_time_from_script):
         self.case_no = str(case_no)
         self.send_message = send_message
         self.reply = reply
@@ -390,6 +434,14 @@ class CaseDataModel:
         self.link_from_script = link_from_script
         self.screenshot_from_script = screenshot_from_script
         self.link_screenshot_from_script = link_screenshot_from_script
+        self.reply_cost_time_from_script = reply_cost_time_from_script
+
+
+def clean_data():
+    del_list = os.listdir(PATH("screenshot"))
+    for f in del_list:
+        file_path = os.path.join(PATH("screenshot"), f)
+        os.remove(file_path)
 
 
 def android_steps():
@@ -404,6 +456,7 @@ def android_steps():
         "noReset": True,
         'chromeOptions': {'androidProcess': 'com.tencent.mm:tools'}
     }
+
     # 1. 从excel读取数据
     test_data_list = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
     test_data_list_copy = test_data_list[1:]
@@ -412,14 +465,16 @@ def android_steps():
     driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
     android_process = AndroidProcess(driver)
 
+    # 2. 进入公众号
     android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
 
+    # 3. 处理消息
     for test_data in test_data_list_copy:
         try:
             android_process.deal_with_test_data(test_data)
         except Exception as e:
             print(str(e.message))
-            # todo: 需要判断是否回到主界面
+            # 需要判断是否回到主界面
 
     # todo: 数据写进excel
     # write_data_into_excel()
@@ -427,19 +482,19 @@ def android_steps():
 
 
 if __name__ == '__main__':
+    clean_data()
     android_steps()
-    #android_process.send_message_then_calculating_time_taken_to_reply("你好")
-    #mobile_function = MobileFunction(driver)
+    # android_process.send_message_then_calculating_time_taken_to_reply("你好")
+    # mobile_function = MobileFunction(driver)
 
-    #current_screenshot = PATH(os.path.join("screenshot", "case1.png"))
-    #driver.save_screenshot(current_screenshot)
+    # current_screenshot = PATH(os.path.join("screenshot", "case1.png"))
+    # driver.save_screenshot(current_screenshot)
 
     # location = Utils.match_image_by_match_template_func(current_screenshot, PATH(os.path.join("template", "huaweip20pro", "case1_link1.png")))
 
-    #android_process = AndroidProcess(driver)
-    #android_process.go_into_volkswagen_official_account()
+    # android_process = AndroidProcess(driver)
+    # android_process.go_into_volkswagen_official_account()
     # a = time.time()
     #
     # b = time.time()
     print("Finished: ")
-
