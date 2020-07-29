@@ -400,7 +400,21 @@ class AndroidProcess:
             y = rect["y"] + rect["height"] - 20
             message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y, try_count=20)
             # F 给reply_from_script赋值
-            # todo:处理回复消息中的link, 需要处理掉link
+
+            pattern = re.compile(r'<a.*?href="(.*?)".*?>(.*?)</a>')
+            find_content_list = re.findall(pattern, message)
+
+            href_link_list = []
+            for find_content in find_content_list:
+                # print(find_content[0], find_content[1])
+                href_link_list.append(unquote(find_content[0]))
+                message = message.replace(find_content[0], "")
+
+            if len(href_link_list) > 0:
+                message = message.replace('<a href="">', "").replace("</a>", "")
+                # link_from_script
+                data.link_from_script = "\n".join(href_link_list)
+
             data.reply_from_script = message
             # 退回到聊天窗口
             self.mobile_function.tap(x, y)
