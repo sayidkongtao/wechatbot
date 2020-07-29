@@ -12,9 +12,9 @@ PATH = lambda path: os.path.abspath(
     )
 )
 
-query_image = cv2.imread(PATH(r"template/common/6.png"), 0)
+query_image = cv2.imread(PATH(r"../template/common/case1_link1.png"), 0)
 # 读取要匹配的灰度照片
-training_image = cv2.imread(PATH(r"screenshot/case1.png"), 0)
+training_image = cv2.imread(PATH(r"../screenshot/case1.png"), 0)
 
 
 # 基于FLANN的匹配器(FLANN based Matcher)描述特征点

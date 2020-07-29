@@ -26,6 +26,7 @@ PATH = lambda path: os.path.abspath(
 
 # 创建一个logging对象
 logger = logging.getLogger()
+logger.setLevel(level=logging.INFO)
 # 创建一个文件对象  创建一个文件对象,以UTF-8 的形式写入 标配版.log 文件中
 fh = logging.FileHandler(PATH(os.path.join("log", "example.log")), encoding='utf-8')
 # 创建一个屏幕对象
@@ -80,10 +81,12 @@ class Utils:
             return None
 
     @staticmethod
-    def match_image_by_flann_func(source_path, template_path):
+    def match_image_by_flann_func(source_path, template_path, mobile_window_rect=None):
         """
+
         :param source_path:
         :param template_path:
+        :param mobile_view_rect: {u'y': 0, u'width': 375, u'x': 0, u'height': 667}
         :return:
         """
         query_image = cv2.imread(PATH(template_path), 0)
@@ -121,8 +124,17 @@ class Utils:
             pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
             dst = cv2.perspectiveTransform(pts, M)
             loc = (np.int32(dst[0][0]), np.int32(dst[2][0]))
-            return {"x": (np.int32(dst[2][0])[0] + np.int32(dst[0][0])[0]) / 2, "y": (np.int32(dst[2][0])[1] +
-                                                                                      np.int32(dst[0][0])[1]) / 2}
+            x = (np.int32(dst[2][0])[0] + np.int32(dst[0][0])[0]) / 2
+            y = (np.int32(dst[2][0])[1] + np.int32(dst[0][0])[1]) / 2
+
+            if mobile_window_rect:
+                mobile_window_width = mobile_window_rect["width"]
+                mobile_window_height = mobile_window_rect["height"]
+                h, w = training_image.shape
+                x = x * mobile_window_width / w
+                y = y * mobile_window_height / h
+
+            return {"x": x, "y": y}
         else:
             logger.error("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
             return None
@@ -193,6 +205,9 @@ class MobileFunction:
 
     def wait_for_element_visible(self, locator):
         return self.webdriver_wait.until(EC.visibility_of_element_located(locator))
+
+    def wait_for_element_presence(self, locator):
+        return self.webdriver_wait.until(EC.presence_of_element_located(locator))
 
     def is_element_visible(self, locator):
         try:
@@ -303,6 +318,61 @@ class AndroidMobilePageObject:
         return (MobileBy.ID, "com.tencent.mm:id/dn")
 
 
+class IOSMobilePageObject:
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def address_book_in_home_page():
+        return (MobileBy.ACCESSIBILITY_ID, "通讯录")
+
+    @staticmethod
+    def gongzong_number_item():
+        return (MobileBy.ACCESSIBILITY_ID, "公众号")
+
+    @staticmethod
+    def search_in_gongzong_page():
+        return (MobileBy.ACCESSIBILITY_ID, "搜索")
+
+    @staticmethod
+    def search_input_in_gongzong_page():
+        return (MobileBy.ACCESSIBILITY_ID, "搜索")
+
+    @staticmethod
+    def target_item():
+        return (MobileBy.XPATH, "(//XCUIElementTypeStaticText[@name='大众汽车金融中国测试号'])[3]")
+
+    @staticmethod
+    def title_in_chat():
+        return (MobileBy.ACCESSIBILITY_ID, "聊天详情")
+
+    @staticmethod
+    def message_btn():
+        return (MobileBy.ACCESSIBILITY_ID, "切换到文本输入")
+
+    @staticmethod
+    def message_input():
+        return (MobileBy.XPATH, "//XCUIElementTypeTextView")
+
+    @staticmethod
+    def message_send_btn():
+        return (MobileBy.ACCESSIBILITY_ID, "Send")
+
+    # 切换到菜单
+    @staticmethod
+    def menu_btn():
+        return (MobileBy.ACCESSIBILITY_ID, "切换到菜单")
+
+    @staticmethod
+    def latest_message():
+        return (MobileBy.XPATH, "//XCUIElementTypeTable//XCUIElementTypeCell[last()]//XCUIElementTypeOther")
+
+    @staticmethod
+    def back_btn():
+        return (MobileBy.ACCESSIBILITY_ID, "关闭")
+
+
 class AndroidProcess:
 
     def __init__(self, webdriver):
@@ -317,7 +387,7 @@ class AndroidProcess:
         )
         self.mobile_function.click(ele_address_book_btn)
 
-        ele_gongzong_number_item = self.mobile_function.wait_for_element_visible(
+        ele_gongzong_number_item = self.mobile_function.wait_for_element_presence(
             AndroidMobilePageObject.gongzong_number_item()
         )
         self.mobile_function.click(ele_gongzong_number_item)
@@ -338,7 +408,7 @@ class AndroidProcess:
         )
         self.mobile_function.click(ele_target_item)
 
-        ele_title_in_chat = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
+        # ele_title_in_chat = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
 
     def send_message_then_calculating_time_taken_to_reply(self, value):
         value = value.decode("utf-8")
@@ -353,7 +423,7 @@ class AndroidProcess:
         self.mobile_function.send_text(ele_message_input, value)
         ele_message_send_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.message_send_btn())
         self.mobile_function.click(ele_message_send_btn)
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.send_message_time = time.time()
 
         while time.time() - self.send_message_time < 30:
@@ -465,6 +535,171 @@ class AndroidProcess:
         pass
 
 
+class IOSProcess:
+
+    def __init__(self, webdriver):
+        self.driver = webdriver
+        self.send_message_time = None
+        self.get_reply_time = None
+        self.mobile_function = MobileFunction(self.driver)
+
+    def go_into_volkswagen_official_account(self, count_name):
+        ele_address_book_btn = self.mobile_function.wait_for_element_visible(
+            IOSMobilePageObject.address_book_in_home_page()
+        )
+        self.mobile_function.click(ele_address_book_btn)
+
+        ele_gongzong_number_item = self.mobile_function.wait_for_element_presence(
+            IOSMobilePageObject.gongzong_number_item()
+        )
+        rect = self.mobile_function.get_rect(ele_gongzong_number_item)
+        self.mobile_function.tap(rect["x"] + rect["width"]/2, rect["y"] + rect["height"]/2)
+
+        ele_search_in_gongzong_page = self.mobile_function.wait_for_element_visible(
+            IOSMobilePageObject.search_in_gongzong_page()
+        )
+        self.mobile_function.click(ele_search_in_gongzong_page)
+
+        ele_search_input_in_gongzong_page = self.mobile_function.wait_for_element_visible(
+            IOSMobilePageObject.search_input_in_gongzong_page()
+        )
+        # "大众汽车金融中国测试号"
+        self.mobile_function.send_text(ele_search_input_in_gongzong_page, count_name.decode("utf-8"))
+
+        ele_target_item = self.mobile_function.wait_for_element_presence(
+            IOSMobilePageObject.target_item()
+        )
+        rect = self.mobile_function.get_rect(ele_target_item)
+        self.mobile_function.tap(rect["x"] + rect["width"] / 2, rect["y"] + rect["height"] / 2)
+
+        #ele_title_in_chat = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
+
+    def send_message_then_calculating_time_taken_to_reply(self, value):
+        value = value.decode("utf-8")
+        logger.info("Send the message: " + value)
+        # self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
+        time.sleep(1)
+        ele_message = self.mobile_function.is_element_visible(IOSMobilePageObject.message_btn())
+        if ele_message:
+            self.mobile_function.click(ele_message)
+
+        ele_message_input = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.message_input())
+        self.mobile_function.send_text(ele_message_input, value)
+        ele_message_send_btn = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.message_send_btn())
+        self.mobile_function.click(ele_message_send_btn)
+        time.sleep(0.2)
+        self.send_message_time = time.time()
+
+        # todo：need to update below code
+        while time.time() - self.send_message_time < 30:
+            latest_message = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
+            text = self.mobile_function.get_text(latest_message)
+            if text.startswith("大众汽车金融中国测试号".decode("utf-8")) or text.startswith("该公众号提供的服务出现故障".decode("utf-8")):
+                self.get_reply_time = time.time()
+                break
+        if self.get_reply_time:
+            cost_time = str(self.get_reply_time - self.send_message_time)
+            logger.info("Cost time is: " + cost_time)
+            self.get_reply_time = None
+            return cost_time
+        else:
+            logger.error("Failed to get the cost time after 30s")
+            return None
+
+    def deal_with_test_data(self, data):
+        """
+
+        :param data:
+        :return:
+        """
+        logger.info("Start to deal with case: " + data.case_no)
+
+        # 发送的信息并获取回复时间
+        result_reply = self.send_message_then_calculating_time_taken_to_reply(data.send_message)
+        if result_reply:
+            # J 给reply_cost_time_from_script赋值
+            data.reply_cost_time_from_script = result_reply
+        else:
+            data.reply_cost_time = "Failed to get the cost time after 30s"
+
+        # 隐藏键盘
+        ele_menu_btn = self.mobile_function.is_element_visible(IOSMobilePageObject.menu_btn())
+        if ele_menu_btn:
+            self.mobile_function.click(ele_menu_btn)
+            time.sleep(2)
+
+        # 不管获取消息成功与否，都进行截图
+        current_screenshot = PATH(os.path.join("screenshot", "case" + str(data.case_no) + ".png"))
+        self.mobile_function.save_screenshot_as_png(current_screenshot)
+        # H 给screenshot_from_script赋值
+        data.screenshot_from_script = os.path.join("screenshot", "case" + str(data.case_no) + ".png")
+
+        # 获取回复的信息
+        if result_reply:
+            latest_message = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
+            message = self.mobile_function.get_text(latest_message).replace("大众汽车金融中国测试号说".decode("utf-8"), "")
+            # F 给reply_from_script赋值
+
+            pattern = re.compile(r'<a.*?href="(.*?)".*?>(.*?)</a>')
+            find_content_list = re.findall(pattern, message)
+
+            href_link_list = []
+            for find_content in find_content_list:
+                # print(find_content[0], find_content[1])
+                href_link_list.append(unquote(find_content[0]))
+                message = message.replace(find_content[0], "")
+
+            if len(href_link_list) > 0:
+                message = message.replace('<a href="">', "").replace("</a>", "")
+                # link_from_script
+                data.link_from_script = "\n".join(href_link_list)
+
+            data.reply_from_script = message
+
+            # 处理回复消息中的link
+            link_template_screenshot_list = data.link_template_screenshot.split("\n")
+            link_screenshot_flag = 1
+            link_screenshot_list = []
+            for link_template_screenshot in link_template_screenshot_list:
+                # 获取 link样例图片在原图中的坐标
+                loc = Utils.match_image_by_flann_func(current_screenshot,
+                                                      PATH(os.path.join("template", "common", link_template_screenshot))
+                                                      , self.driver.get_window_rect())
+
+                current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
+                                                                                                link_screenshot_flag))
+                # 点击匹配到的link
+                if loc:
+                    try:
+                        self.mobile_function.tap(loc["x"], loc["y"])
+                        # 等待页面加载
+                        time.sleep(5)
+                        self.mobile_function.save_screenshot_as_png(PATH(current_link_screenshot))
+
+                        # 从link页面返回到消息界面
+                        back_btn = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.back_btn())
+                        self.mobile_function.click(back_btn)
+                        self.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
+                    except Exception as e:
+                        logger.error(e)
+                        back_btn = self.mobile_function.is_element_visible(IOSMobilePageObject.back_btn())
+                        if back_btn:
+                            self.mobile_function.click(back_btn)
+
+                        logger.error("No link template matched for: " + current_link_screenshot)
+                        current_link_screenshot = "No link template matched for: " + current_link_screenshot
+                else:
+                    logger.error("No link template matched for: " + current_link_screenshot)
+                    current_link_screenshot = "No link template matched for: " + current_link_screenshot
+
+                link_screenshot_flag = link_screenshot_flag + 1
+                link_screenshot_list.append(current_link_screenshot)
+
+            if len(link_screenshot_list) > 0:
+                # I 给link_screenshot_from_script赋值
+                data.link_screenshot_from_script = "\n".join(link_screenshot_list)
+
+
 class CaseDataModel:
 
     def __init__(self, case_no, send_message, reply, link_template_screenshot_folder, link_template_screenshot,
@@ -532,7 +767,53 @@ def android_steps():
     logger.info("write_data_into_excel")
 
 
+def ios_steps():
+    desired_caps_ios_wechat = {
+      "platformName": "iOS",
+      "platformVersion": "12.2",
+      "deviceName": "iPhone",
+      "automationName": "XCUITest",
+      "udid": "029d553ea04ba899509dc0630fda19bdac61231a",
+      "bundleId": "com.tencent.xin",
+      "newCommandTimeout": 7200,
+      "startIWDP": True,
+      "webDriverAgentUrl": "http://localhost:8100"
+    }
+
+    # 1. 从excel读取数据
+    test_data_list = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
+    test_data_list_copy = test_data_list[1:]
+    logger.info("Total cases: " + str(len(test_data_list_copy)))
+
+    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_ios_wechat)
+    ios_process = IOSProcess(driver)
+
+    # 2. 进入公众号
+    ios_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+
+    # 3. 处理消息
+    for test_data in test_data_list_copy:
+        try:
+            # 需要判断是否回到主界面
+            try:
+                ios_process.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
+            except Exception as e:
+                driver.close_app()
+                time.sleep(2)
+                driver.launch_app()
+                ios_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+
+            ios_process.deal_with_test_data(test_data)
+        except Exception as e:
+            logger.info(e)
+
+    # 数据写进excel
+    Utils.write_data_into_excel(PATH("test_case_example.xlsx"), test_data_list_copy)
+    logger.info("write_data_into_excel")
+
+
 if __name__ == '__main__':
     clean_data()
-    android_steps()
+    # android_steps()
+    ios_steps()
     logger.info("Finished: ")
