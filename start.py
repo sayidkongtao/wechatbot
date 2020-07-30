@@ -13,6 +13,7 @@ from openpyxl import load_workbook
 import logging
 import re
 from urllib import unquote
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -23,12 +24,11 @@ PATH = lambda path: os.path.abspath(
     )
 )
 
-
 # 创建一个logging对象
 logger = logging.getLogger()
 logger.setLevel(level=logging.INFO)
 # 创建一个文件对象  创建一个文件对象,以UTF-8 的形式写入 标配版.log 文件中
-fh = logging.FileHandler(PATH(os.path.join("log", "example.log")), encoding='utf-8')
+fh = logging.FileHandler(PATH(os.path.join("log", "example.log")), mode="w", encoding='utf-8')
 # 创建一个屏幕对象
 sh = logging.StreamHandler()
 # 配置显示格式  可以设置两个配置格式  分别绑定到文件和屏幕上
@@ -36,7 +36,7 @@ formatter = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(level
 fh.setFormatter(formatter)  # 将格式绑定到两个对象上
 sh.setFormatter(formatter)
 
-logger.addHandler(fh)   # 将两个句柄绑定到logger
+logger.addHandler(fh)  # 将两个句柄绑定到logger
 logger.addHandler(sh)
 
 
@@ -229,13 +229,14 @@ class MobileFunction:
         touch_action = TouchAction(self.driver)
         touch_action.tap(x=x, y=y, count=1).release().perform()
 
-    def double_tap_ele_to_get_details_message(self, x, y, try_count=30):
+    def double_tap_ele_to_get_details_message(self, x, y, try_count=60):
         message = None
         touch_action = TouchAction(self.driver)
-        logger.info("The details_message coordinate is {} {}".format(x,y))
+        logger.info("The details_message coordinate is {} {}".format(x, y))
         current = time.time()
         while time.time() - current < try_count:
             touch_action.tap(x=x, y=y, count=2).release().perform()
+            time.sleep(0.5)
             ele = self.is_element_visible(AndroidMobilePageObject.details_message())
             if ele:
                 logger.info("Try to get details message")
@@ -247,7 +248,8 @@ class MobileFunction:
         if message:
             logger.info("Success to get the details message")
         else:
-            logger.error("Failed to get the details message after 30s, since cannot get the messgae by double click element")
+            logger.error(
+                "Failed to get the details message after 60s, since cannot get the messgae by double click element")
 
         return message
 
@@ -475,28 +477,49 @@ class AndroidProcess:
         # 获取回复的信息
         if result_reply:
             latest_message = self.mobile_function.find_elements(AndroidMobilePageObject.latest_message())
-            rect = self.mobile_function.get_rect(latest_message[-1])
-            x = rect["x"] + rect["width"] - 25
-            y = rect["y"] + rect["height"] - 25
-            message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y, try_count=30)
-            # F 给reply_from_script赋值
+            # 最多取五个消息
 
+            flag_count = len(latest_message) if len(latest_message) < 5 else 5
+            message_list = []
+
+            for i in range(len(latest_message) - 1, -1, -1):
+                if flag_count > 0:
+                    flag_count = flag_count - 1
+                    rect = self.mobile_function.get_rect(latest_message[i])
+                    x = rect["x"] + rect["width"] - 30
+                    y = rect["y"] + rect["height"] - 30
+                    message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y, try_count=60)
+
+                    if message:
+                        if message == data.send_message:
+                            break
+                        message_list.append(message)
+                    time.sleep(1.5)
+                    latest_message = self.mobile_function.find_elements(AndroidMobilePageObject.latest_message())
+                else:
+                    break
+
+            message_all = ""
+            if len(message_list) > 0:
+                message_list.reverse()
+                message_all = "\n".join(message_list)
+
+            # F 给reply_from_script赋值
             pattern = re.compile(r'<a.*?href="(.*?)".*?>(.*?)</a>')
-            find_content_list = re.findall(pattern, message)
+            find_content_list = re.findall(pattern, message_all)
 
             href_link_list = []
             for find_content in find_content_list:
                 # print(find_content[0], find_content[1])
                 href_link_list.append(unquote(find_content[0]))
-                message = message.replace(find_content[0], "")
+                message_all = message_all.replace(find_content[0], "")
 
             if len(href_link_list) > 0:
-                message = message.replace('<a href="">', "").replace("</a>", "")
+                message_all = message_all.replace('<a href="">', "").replace("</a>", "")
                 # link_from_script
                 data.link_from_script = "\n".join(href_link_list)
 
-            # todo: 有时一个问题，会回复多条。这个需要处理
-            data.reply_from_script = message
+            data.reply_from_script = message_all
             # 退回到聊天窗口
             self.mobile_function.tap(x, y)
 
@@ -507,7 +530,8 @@ class AndroidProcess:
             for link_template_screenshot in link_template_screenshot_list:
                 # 获取 link样例图片在原图中的坐标
                 loc = Utils.match_image_by_flann_func(current_screenshot,
-                                                      PATH(os.path.join("template", "common", link_template_screenshot)))
+                                                      PATH(
+                                                          os.path.join("template", "common", link_template_screenshot)))
 
                 current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
                                                                                                 link_screenshot_flag))
@@ -564,7 +588,7 @@ class IOSProcess:
             IOSMobilePageObject.gongzong_number_item()
         )
         rect = self.mobile_function.get_rect(ele_gongzong_number_item)
-        self.mobile_function.tap(rect["x"] + rect["width"]/2, rect["y"] + rect["height"]/2)
+        self.mobile_function.tap(rect["x"] + rect["width"] / 2, rect["y"] + rect["height"] / 2)
 
         ele_search_in_gongzong_page = self.mobile_function.wait_for_element_visible(
             IOSMobilePageObject.search_in_gongzong_page()
@@ -583,7 +607,7 @@ class IOSProcess:
         rect = self.mobile_function.get_rect(ele_target_item)
         self.mobile_function.tap(rect["x"] + rect["width"] / 2, rect["y"] + rect["height"] / 2)
 
-        #ele_title_in_chat = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
+        # ele_title_in_chat = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
 
     def send_message_then_calculating_time_taken_to_reply(self, value):
         value = value.decode("utf-8")
@@ -741,7 +765,7 @@ def android_steps():
         "automationName": os.getenv("APPIUM_AUTOMATION_NAME", "Appium"),
         "appActivity": os.getenv("APPIUM_APP_ACTIVITY", "com.tencent.mm.ui.LauncherUI"),
         "appPackage": os.getenv("APPIUM_APP_PACKAGE", "com.tencent.mm"),
-        "deviceName":  os.getenv("APPIUM_DEVICE_NAME", "AKC7N18907000186"),
+        "deviceName": os.getenv("APPIUM_DEVICE_NAME", "AKC7N18907000186"),
         "newCommandTimeout": 7200,
         "noReset": True,
         'chromeOptions': {'androidProcess': 'com.tencent.mm:tools'}
@@ -779,15 +803,15 @@ def android_steps():
 
 def ios_steps():
     desired_caps_ios_wechat = {
-      "platformName": "iOS",
-      "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "12.2"),
-      "deviceName": os.getenv('APP_DEVICE_NAME', "iPhone"),
-      "automationName": "XCUITest",
-      "udid": os.getenv("APP_UDID", "029d553ea04ba899509dc0630fda19bdac61231a"),
-      "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
-      "newCommandTimeout": 7200,
-      "startIWDP": True,
-      "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
+        "platformName": "iOS",
+        "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "12.2"),
+        "deviceName": os.getenv('APP_DEVICE_NAME', "iPhone"),
+        "automationName": "XCUITest",
+        "udid": os.getenv("APP_UDID", "029d553ea04ba899509dc0630fda19bdac61231a"),
+        "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
+        "newCommandTimeout": 7200,
+        "startIWDP": True,
+        "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
     }
 
     # 1. 从excel读取数据
@@ -825,5 +849,5 @@ def ios_steps():
 if __name__ == '__main__':
     clean_data()
     android_steps()
-    #ios_steps()
+    # ios_steps()
     logger.info("Finished: ")

@@ -1,81 +1,9 @@
-2020-07-29 17:40:59,582 start.py[line:786] INFO Total cases: 2
-2020-07-29 17:41:37,058 start.py[line:786] INFO Total cases: 2
-2020-07-29 17:42:48,323 start.py[line:786] INFO Total cases: 2
-2020-07-29 17:43:14,190 start.py[line:786] INFO Total cases: 2
-2020-07-29 17:43:17,516 start.py[line:786] INFO Total cases: 2
-2020-07-29 17:45:00,882 start.py[line:786] INFO Total cases: 2
-2020-07-29 17:45:34,180 start.py[line:615] INFO Start to deal with case: 1
-2020-07-29 17:45:34,180 start.py[line:579] INFO Send the message: 你好
-2020-07-29 17:45:55,793 start.py[line:602] INFO Cost time is: 7.09709382057
-2020-07-29 17:46:22,553 start.py[line:615] INFO Start to deal with case: 2
-2020-07-29 17:46:22,554 start.py[line:579] INFO Send the message: 你好
-2020-07-29 17:46:47,305 start.py[line:602] INFO Cost time is: 9.78348684311
-2020-07-29 17:47:03,457 start.py[line:812] INFO write_data_into_excel
-2020-07-29 17:47:03,458 start.py[line:819] INFO Finished: 
-2020-07-30 10:07:38,646 start.py[line:754] INFO Total cases: 2
-2020-07-30 10:08:13,222 start.py[line:754] INFO Total cases: 2
-2020-07-30 10:08:30,619 start.py[line:454] INFO Start to deal with case: 1
-2020-07-30 10:08:30,619 start.py[line:420] INFO Send the message: 你好
-2020-07-30 10:08:45,778 start.py[line:441] INFO Cost time is: 12.0124549866
-2020-07-30 10:08:48,611 start.py[line:235] INFO The details_message coordinate is 892.0 2037.0
-2020-07-30 10:09:06,452 start.py[line:240] INFO Try to get details message
-2020-07-30 10:09:06,469 start.py[line:242] INFO 有问题也可以给我留言哟，为您服务是我的荣幸~
-2020-07-30 10:09:06,514 start.py[line:249] INFO Success to get the details message
-2020-07-30 10:09:26,119 start.py[line:454] INFO Start to deal with case: 2
-2020-07-30 10:09:26,119 start.py[line:420] INFO Send the message: 你好
-2020-07-30 10:09:32,100 start.py[line:441] INFO Cost time is: 3.03458404541
-2020-07-30 10:09:35,017 start.py[line:235] INFO The details_message coordinate is 892.0 2037.0
-2020-07-30 10:10:17,184 start.py[line:251] ERROR Failed to get the details message
-2020-07-30 10:10:17,184 start.py[line:774] INFO expected string or buffer
-2020-07-30 10:10:17,244 start.py[line:778] INFO write_data_into_excel
-2020-07-30 10:10:17,244 start.py[line:830] INFO Finished: 
-2020-07-30 10:37:57,263 start.py[line:753] INFO Total cases: 2
-2020-07-30 10:38:15,552 start.py[line:453] INFO Start to deal with case: 1
-2020-07-30 10:38:15,552 start.py[line:419] INFO Send the message: 你好
-2020-07-30 10:38:23,672 start.py[line:440] INFO Cost time is: 4.85977697372
-2020-07-30 10:38:26,552 start.py[line:235] INFO The details_message coordinate is 892.0 2037.0
-2020-07-30 10:38:36,009 start.py[line:241] INFO Try to get details message
-2020-07-30 10:38:36,039 start.py[line:243] INFO 有问题也可以给我留言哟，为您服务是我的荣幸~
-2020-07-30 10:38:36,099 start.py[line:248] INFO Success to get the details message
-2020-07-30 10:38:55,770 start.py[line:453] INFO Start to deal with case: 2
-2020-07-30 10:38:55,771 start.py[line:419] INFO Send the message: 你好
-2020-07-30 10:39:02,272 start.py[line:440] INFO Cost time is: 3.51620388031
-2020-07-30 10:39:05,151 start.py[line:235] INFO The details_message coordinate is 892.0 2037.0
-2020-07-30 10:39:25,376 start.py[line:250] ERROR Failed to get the details message after 30s, since cannot get the messgae by double click element
-2020-07-30 10:39:25,376 start.py[line:773] INFO expected string or buffer
-2020-07-30 10:39:25,481 start.py[line:777] INFO write_data_into_excel
-2020-07-30 10:39:25,481 start.py[line:829] INFO Finished: 
-2020-07-30 10:40:04,183 start.py[line:753] INFO Total cases: 2
-2020-07-30 10:40:21,987 start.py[line:453] INFO Start to deal with case: 1
-2020-07-30 10:40:21,988 start.py[line:419] INFO Send the message: 你好
-2020-07-30 10:40:28,303 start.py[line:440] INFO Cost time is: 2.9371612072
-2020-07-30 10:40:31,189 start.py[line:235] INFO The details_message coordinate is 887.0 2032.0
-2020-07-30 10:40:49,683 start.py[line:241] INFO Try to get details message
-2020-07-30 10:40:49,707 start.py[line:243] INFO 有问题也可以给我留言哟，为您服务是我的荣幸~
-2020-07-30 10:40:49,756 start.py[line:248] INFO Success to get the details message
-2020-07-30 10:41:09,653 start.py[line:453] INFO Start to deal with case: 2
-2020-07-30 10:41:09,653 start.py[line:419] INFO Send the message: 你好
-2020-07-30 10:41:15,583 start.py[line:440] INFO Cost time is: 2.97778511047
-2020-07-30 10:41:18,450 start.py[line:235] INFO The details_message coordinate is 887.0 2032.0
-2020-07-30 10:41:21,758 start.py[line:241] INFO Try to get details message
-2020-07-30 10:41:21,792 start.py[line:243] INFO 有问题也可以给我留言哟，为您服务是我的荣幸~
-2020-07-30 10:41:21,868 start.py[line:248] INFO Success to get the details message
-2020-07-30 10:41:31,503 start.py[line:777] INFO write_data_into_excel
-2020-07-30 10:41:31,503 start.py[line:829] INFO Finished: 
-2020-07-30 10:43:31,629 start.py[line:753] INFO Total cases: 2
-2020-07-30 10:43:48,206 start.py[line:453] INFO Start to deal with case: 1
-2020-07-30 10:43:48,207 start.py[line:419] INFO Send the message: 你好
-2020-07-30 10:43:58,524 start.py[line:440] INFO Cost time is: 6.32194185257
-2020-07-30 10:44:01,430 start.py[line:235] INFO The details_message coordinate is 887.0 2032.0
-2020-07-30 10:44:25,635 start.py[line:241] INFO Try to get details message
-2020-07-30 10:44:25,665 start.py[line:243] INFO 有问题也可以给我留言哟，为您服务是我的荣幸~
-2020-07-30 10:44:25,747 start.py[line:248] INFO Success to get the details message
-2020-07-30 10:44:45,917 start.py[line:453] INFO Start to deal with case: 2
-2020-07-30 10:44:45,917 start.py[line:419] INFO Send the message: 你好
-2020-07-30 10:44:51,904 start.py[line:440] INFO Cost time is: 2.97105002403
-2020-07-30 10:44:54,804 start.py[line:235] INFO The details_message coordinate is 887.0 2032.0
-2020-07-30 10:45:13,743 start.py[line:241] INFO Try to get details message
-2020-07-30 10:45:13,763 start.py[line:243] INFO 有问题也可以给我留言哟，为您服务是我的荣幸~
-2020-07-30 10:45:13,824 start.py[line:248] INFO Success to get the details message
-2020-07-30 10:45:23,534 start.py[line:777] INFO write_data_into_excel
-2020-07-30 10:45:23,534 start.py[line:829] INFO Finished: 
+2020-07-30 15:32:34,493 start.py[line:777] INFO Total cases: 2
+2020-07-30 15:32:57,911 start.py[line:455] INFO Start to deal with case: 1
+2020-07-30 15:32:57,911 start.py[line:421] INFO Send the message: 你好
+2020-07-30 15:33:31,325 start.py[line:446] ERROR Failed to get the cost time after 30s
+2020-07-30 15:33:34,198 start.py[line:455] INFO Start to deal with case: 2
+2020-07-30 15:33:34,198 start.py[line:421] INFO Send the message: 你好
+2020-07-30 15:34:07,114 start.py[line:446] ERROR Failed to get the cost time after 30s
+2020-07-30 15:34:09,919 start.py[line:801] INFO write_data_into_excel
+2020-07-30 15:34:09,919 start.py[line:853] INFO Finished: 
