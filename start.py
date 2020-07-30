@@ -229,11 +229,12 @@ class MobileFunction:
         touch_action = TouchAction(self.driver)
         touch_action.tap(x=x, y=y, count=1).release().perform()
 
-    def double_tap_ele_to_get_details_message(self, x, y, try_count=20):
+    def double_tap_ele_to_get_details_message(self, x, y, try_count=30):
         message = None
         touch_action = TouchAction(self.driver)
         logger.info("The details_message coordinate is {} {}".format(x,y))
-        while try_count > 0:
+        current = time.time()
+        while time.time() - current < try_count:
             touch_action.tap(x=x, y=y, count=2).release().perform()
             ele = self.is_element_visible(AndroidMobilePageObject.details_message())
             if ele:
@@ -242,13 +243,11 @@ class MobileFunction:
                 logger.info(message)
                 self.click(ele)
                 break
-            try_count = try_count - 1
-            time.sleep(1)
 
         if message:
             logger.info("Success to get the details message")
         else:
-            logger.error("Failed to get the details message")
+            logger.error("Failed to get the details message after 30s, since cannot get the messgae by double click element")
 
         return message
 
@@ -477,9 +476,9 @@ class AndroidProcess:
         if result_reply:
             latest_message = self.mobile_function.find_elements(AndroidMobilePageObject.latest_message())
             rect = self.mobile_function.get_rect(latest_message[-1])
-            x = rect["x"] + rect["width"] - 20
-            y = rect["y"] + rect["height"] - 20
-            message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y, try_count=20)
+            x = rect["x"] + rect["width"] - 25
+            y = rect["y"] + rect["height"] - 25
+            message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y, try_count=30)
             # F 给reply_from_script赋值
 
             pattern = re.compile(r'<a.*?href="(.*?)".*?>(.*?)</a>')
@@ -738,7 +737,7 @@ def clean_data():
 def android_steps():
     desired_caps_android_wechat = {
         "platformName": "Android",
-        "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", 10),
+        "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", "10"),
         "automationName": os.getenv("APPIUM_AUTOMATION_NAME", "Appium"),
         "appActivity": os.getenv("APPIUM_APP_ACTIVITY", "com.tencent.mm.ui.LauncherUI"),
         "appPackage": os.getenv("APPIUM_APP_PACKAGE", "com.tencent.mm"),
@@ -826,5 +825,5 @@ def ios_steps():
 if __name__ == '__main__':
     clean_data()
     android_steps()
-    ios_steps()
+    #ios_steps()
     logger.info("Finished: ")
