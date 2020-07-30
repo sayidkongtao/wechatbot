@@ -485,6 +485,7 @@ class AndroidProcess:
                 # link_from_script
                 data.link_from_script = "\n".join(href_link_list)
 
+            # todo: 有时一个问题，会回复多条。这个需要处理
             data.reply_from_script = message
             # 退回到聊天窗口
             self.mobile_function.tap(x, y)
@@ -653,7 +654,7 @@ class IOSProcess:
                 message = message.replace('<a href="">', "").replace("</a>", "")
                 # link_from_script
                 data.link_from_script = "\n".join(href_link_list)
-
+            # todo: 有时一个问题，会回复多条。这个需要处理
             data.reply_from_script = message
 
             # 处理回复消息中的link
@@ -727,11 +728,11 @@ def clean_data():
 def android_steps():
     desired_caps_android_wechat = {
         "platformName": "Android",
-        "platformVersion": "10",
-        "automationName": "Appium",
-        "appActivity": "com.tencent.mm.ui.LauncherUI",
-        "appPackage": "com.tencent.mm",
-        "deviceName": "AKC7N18907000186",
+        "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", 10),
+        "automationName": os.getenv("APPIUM_AUTOMATION_NAME", "Appium"),
+        "appActivity": os.getenv("APPIUM_APP_ACTIVITY", "com.tencent.mm.ui.LauncherUI"),
+        "appPackage": os.getenv("APPIUM_APP_PACKAGE", "com.tencent.mm"),
+        "deviceName":  os.getenv("APPIUM_DEVICE_NAME", "AKC7N18907000186"),
         "newCommandTimeout": 7200,
         "noReset": True,
         'chromeOptions': {'androidProcess': 'com.tencent.mm:tools'}
@@ -770,14 +771,14 @@ def android_steps():
 def ios_steps():
     desired_caps_ios_wechat = {
       "platformName": "iOS",
-      "platformVersion": "12.2",
-      "deviceName": "iPhone",
+      "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "12.2"),
+      "deviceName": os.getenv('APP_DEVICE_NAME', "iPhone"),
       "automationName": "XCUITest",
-      "udid": "029d553ea04ba899509dc0630fda19bdac61231a",
-      "bundleId": "com.tencent.xin",
+      "udid": os.getenv("APP_UDID", "029d553ea04ba899509dc0630fda19bdac61231a"),
+      "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
       "newCommandTimeout": 7200,
       "startIWDP": True,
-      "webDriverAgentUrl": "http://localhost:8100"
+      "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
     }
 
     # 1. 从excel读取数据
@@ -814,6 +815,6 @@ def ios_steps():
 
 if __name__ == '__main__':
     clean_data()
-    # android_steps()
+    android_steps()
     ios_steps()
     logger.info("Finished: ")
