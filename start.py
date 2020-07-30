@@ -301,6 +301,11 @@ class AndroidMobilePageObject:
     def message_send_btn():
         return (MobileBy.ID, "com.tencent.mm:id/anv")
 
+    # 服务按钮 com.tencent.mm:id/g33
+    @staticmethod
+    def menu_btn():
+        return (MobileBy.ID, "com.tencent.mm:id/g33")
+
     @staticmethod
     def latest_message():
         return (MobileBy.ID, "com.tencent.mm:id/ala")
@@ -456,6 +461,12 @@ class AndroidProcess:
         else:
             data.reply_cost_time = "Failed to get the cost time after 30s"
 
+        # 隐藏键盘
+        ele_menu_btn = self.mobile_function.is_element_visible(AndroidMobilePageObject.menu_btn())
+        if ele_menu_btn:
+            self.mobile_function.click(ele_menu_btn)
+            time.sleep(2)
+
         # 不管获取消息成功与否，都进行截图
         current_screenshot = PATH(os.path.join("screenshot", "case" + str(data.case_no) + ".png"))
         self.mobile_function.save_screenshot_as_png(current_screenshot)
@@ -591,7 +602,6 @@ class IOSProcess:
         time.sleep(0.2)
         self.send_message_time = time.time()
 
-        # todo：need to update below code
         while time.time() - self.send_message_time < 30:
             latest_message = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
             text = self.mobile_function.get_text(latest_message)
