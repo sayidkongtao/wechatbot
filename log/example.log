@@ -1,9 +1,35 @@
-2020-07-30 15:32:34,493 start.py[line:777] INFO Total cases: 2
-2020-07-30 15:32:57,911 start.py[line:455] INFO Start to deal with case: 1
-2020-07-30 15:32:57,911 start.py[line:421] INFO Send the message: 你好
-2020-07-30 15:33:31,325 start.py[line:446] ERROR Failed to get the cost time after 30s
-2020-07-30 15:33:34,198 start.py[line:455] INFO Start to deal with case: 2
-2020-07-30 15:33:34,198 start.py[line:421] INFO Send the message: 你好
-2020-07-30 15:34:07,114 start.py[line:446] ERROR Failed to get the cost time after 30s
-2020-07-30 15:34:09,919 start.py[line:801] INFO write_data_into_excel
-2020-07-30 15:34:09,919 start.py[line:853] INFO Finished: 
+2020-07-30 16:22:38,613 start.py[line:840] INFO Total cases: 2
+2020-07-30 16:23:04,317 start.py[line:653] INFO Start to deal with case: 1
+2020-07-30 16:23:04,317 start.py[line:618] INFO Send the message: 你好
+2020-07-30 16:23:27,238 start.py[line:640] INFO Cost time is: 7.38323402405
+2020-07-30 16:23:36,543 start.py[line:687] INFO Get the message: 大众汽车金融中国测试号说有问题也可以给我留言哟，为您服务是我的荣幸~
+2020-07-30 16:23:37,097 start.py[line:687] INFO Get the message: 大众汽车金融中国测试号说? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fHome?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=contract%26utm_term=还款计划_合同信息&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 查询合同与还款计划表</a>
+
+? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fOverduePayment%2fIndex?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=overdue%26utm_term=还款进度_逾期合同还款&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 逾期合同还款</a>
+
+? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fPayTrial?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=prepayment%26utm_term=还款进度_提前还款查询&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 提前还款报价</a>
+2020-07-30 16:23:37,692 start.py[line:687] INFO Get the message: 大众汽车金融中国测试号说? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fHome?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=contract%26utm_term=还款计划_合同信息&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 查询合同与还款计划表</a>
+
+? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fOverduePayment%2fIndex?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=overdue%26utm_term=还款进度_逾期合同还款&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 逾期合同还款</a>
+
+? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fPayTrial?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=prepayment%26utm_term=还款进度_提前还款查询&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 提前还款报价</a>
+2020-07-30 16:23:38,285 start.py[line:687] INFO Get the message: 大众汽车金融中国测试号说您好，我是您的小助手融融。如下是我们的主要服务内容，点击即可进入功能页面：
+2020-07-30 16:23:38,825 start.py[line:687] INFO Get the message: sayid说你好
+2020-07-30 16:24:00,079 start.py[line:653] INFO Start to deal with case: 2
+2020-07-30 16:24:00,079 start.py[line:618] INFO Send the message: 你好
+2020-07-30 16:24:22,932 start.py[line:640] INFO Cost time is: 7.45266699791
+2020-07-30 16:24:33,864 start.py[line:687] INFO Get the message: 大众汽车金融中国测试号说有问题也可以给我留言哟，为您服务是我的荣幸~
+2020-07-30 16:24:34,531 start.py[line:687] INFO Get the message: 大众汽车金融中国测试号说? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fHome?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=contract%26utm_term=还款计划_合同信息&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 查询合同与还款计划表</a>
+
+? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fOverduePayment%2fIndex?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=overdue%26utm_term=还款进度_逾期合同还款&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 逾期合同还款</a>
+
+? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fPayTrial?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=prepayment%26utm_term=还款进度_提前还款查询&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 提前还款报价</a>
+2020-07-30 16:24:35,245 start.py[line:687] INFO Get the message: 大众汽车金融中国测试号说? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fHome?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=contract%26utm_term=还款计划_合同信息&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 查询合同与还款计划表</a>
+
+? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fOverduePayment%2fIndex?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=overdue%26utm_term=还款进度_逾期合同还款&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 逾期合同还款</a>
+
+? <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc48ed8d2ff9e52fd&redirect_uri=https%3a%2f%2fwechat.volkswagen-finance-china.com.cn%2fCCG%2fPayTrial?utm_source=chatbot%26utm_medium=cpc%26utm_content=textlink%26utm_campaign=prepayment%26utm_term=还款进度_提前还款查询&response_type=code&scope=snsapi_base&state=1#wechat_redirect">- 提前还款报价</a>
+2020-07-30 16:24:35,888 start.py[line:687] INFO Get the message: 大众汽车金融中国测试号说您好，我是您的小助手融融。如下是我们的主要服务内容，点击即可进入功能页面：
+2020-07-30 16:24:36,544 start.py[line:687] INFO Get the message: sayid说你好
+2020-07-30 16:24:46,851 start.py[line:866] INFO write_data_into_excel
+2020-07-30 16:24:46,852 start.py[line:873] INFO Finished: 

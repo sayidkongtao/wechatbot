@@ -375,6 +375,10 @@ class IOSMobilePageObject:
         return (MobileBy.XPATH, "//XCUIElementTypeTable//XCUIElementTypeCell[last()]//XCUIElementTypeOther")
 
     @staticmethod
+    def all_message():
+        return (MobileBy.XPATH, "//XCUIElementTypeTable//XCUIElementTypeCell//XCUIElementTypeOther")
+
+    @staticmethod
     def back_btn():
         return (MobileBy.ACCESSIBILITY_ID, "关闭")
 
@@ -670,10 +674,26 @@ class IOSProcess:
 
         # 获取回复的信息
         if result_reply:
-            latest_message = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
-            message = self.mobile_function.get_text(latest_message).replace("大众汽车金融中国测试号说".decode("utf-8"), "")
-            # F 给reply_from_script赋值
+            self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
+            all_message_eles = self.mobile_function.find_elements(IOSMobilePageObject.all_message())
 
+            flag_count = len(all_message_eles) if len(all_message_eles) < 8 else 8
+            message_list = []
+
+            for i in range(len(all_message_eles) - 1, -1, -1):
+                if flag_count > 0:
+                    flag_count = flag_count - 1
+                    message = self.mobile_function.get_text(all_message_eles[i])
+                    logger.info("Get the message: " + message)
+                    if message.endswith(data.send_message):
+                        break
+                    message = message.replace("大众汽车金融中国测试号说".decode("utf-8"), "")
+                    if message not in message_list:
+                        message_list.append(message)
+
+            message_list.reverse()
+            message = "\n".join(message_list)
+            # F 给reply_from_script赋值
             pattern = re.compile(r'<a.*?href="(.*?)".*?>(.*?)</a>')
             find_content_list = re.findall(pattern, message)
 
@@ -687,7 +707,7 @@ class IOSProcess:
                 message = message.replace('<a href="">', "").replace("</a>", "")
                 # link_from_script
                 data.link_from_script = "\n".join(href_link_list)
-            # todo: 有时一个问题，会回复多条。这个需要处理
+
             data.reply_from_script = message
 
             # 处理回复消息中的link
@@ -848,6 +868,6 @@ def ios_steps():
 
 if __name__ == '__main__':
     clean_data()
-    android_steps()
-    # ios_steps()
+    # android_steps()
+    ios_steps()
     logger.info("Finished: ")
