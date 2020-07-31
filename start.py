@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import cv2
 from appium import webdriver
+from appium.webdriver.common.multi_action import MultiAction
 import time
 import os
 from selenium.webdriver.support.ui import WebDriverWait
@@ -228,6 +229,13 @@ class MobileFunction:
     def tap(self, x, y):
         touch_action = TouchAction(self.driver)
         touch_action.tap(x=x, y=y, count=1).release().perform()
+
+    def double_tap(self, x, y):
+        action1 = TouchAction(self.driver).long_press(x=x, y=y, duration=500).release()
+        action2 = TouchAction(self.driver).long_press(x=x, y=y, duration=500).release()
+        m_action = MultiAction(self.driver)
+        m_action.add(action1, action2)
+        m_action.perform()
 
     def double_tap_ele_to_get_details_message(self, x, y, try_count=60):
         message = None
