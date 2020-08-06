@@ -527,7 +527,7 @@ class AndroidProcess:
         self.mobile_function.save_screenshot_as_png(current_screenshot)
         # H 给screenshot_from_script赋值
         data.screenshot_from_script = os.path.join("screenshot", "case" + str(data.case_no) + ".png")
-
+        folder_name = data.link_template_screenshot_folder
         # 获取回复的信息
         if result_reply:
             latest_message = self.mobile_function.find_elements(AndroidMobilePageObject.latest_message())
@@ -536,13 +536,17 @@ class AndroidProcess:
             flag_count = len(latest_message) if len(latest_message) < 5 else 5
             message_list = []
 
+            folder_path = PATH(os.path.join("template", folder_name, "copy_item"))
+
             for i in range(len(latest_message) - 1, -1, -1):
                 if flag_count > 0:
                     flag_count = flag_count - 1
                     rect = self.mobile_function.get_rect(latest_message[i])
-                    x = rect["x"] + rect["width"]/3
-                    y = rect["y"] + rect["height"]/3
-                    message = self.mobile_function.get_details_message_by_copy_past_item(x=x, y=y, time_out=60)
+                    x = rect["x"] + rect["width"] / 3
+                    y = rect["y"] + rect["height"] / 3
+                    message = self.mobile_function.get_details_message_by_copy_past_item(x=x, y=y,
+                                                                                         copy_item_path=folder_path,
+                                                                                         time_out=60)
 
                     if message:
                         if message == data.send_message:
@@ -583,8 +587,9 @@ class AndroidProcess:
                 for link_template_screenshot in link_template_screenshot_list:
                     # 获取 link样例图片在原图中的坐标
                     loc = Utils.match_image_by_match_template_func(current_screenshot,
-                                                          PATH(
-                                                              os.path.join("template", "common", link_template_screenshot)))
+                                                                   PATH(
+                                                                       os.path.join("template", folder_name,
+                                                                                    link_template_screenshot)))
 
                     current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
                                                                                                     link_screenshot_flag))
@@ -720,6 +725,7 @@ class IOSProcess:
         self.mobile_function.save_screenshot_as_png(current_screenshot)
         # H 给screenshot_from_script赋值
         data.screenshot_from_script = os.path.join("screenshot", "case" + str(data.case_no) + ".png")
+        folder_name = data.link_template_screenshot_folder
 
         # 获取回复的信息
         if result_reply:
@@ -767,7 +773,7 @@ class IOSProcess:
                 for link_template_screenshot in link_template_screenshot_list:
                     # 获取 link样例图片在原图中的坐标
                     loc = Utils.match_image_by_match_template_func(current_screenshot,
-                                                                   PATH(os.path.join("template", "common",
+                                                                   PATH(os.path.join("template", folder_name,
                                                                                      link_template_screenshot))
                                                                    , self.driver.get_window_rect())
 
@@ -929,6 +935,6 @@ def ios_steps():
 
 if __name__ == '__main__':
     clean_data()
-    # android_steps()
-    ios_steps()
+    android_steps()
+    # ios_steps()
     logger.info("Finished: ")
