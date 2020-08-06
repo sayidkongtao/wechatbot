@@ -74,5 +74,6 @@ def match_image_by_match_template_func(source_path, template_path, mobile_window
     else:
         return None
 
-
-match_image_by_match_template_func(PATH(r"../screenshot/case1.png"), PATH(r"../template/huaweip20pro/case1_link1.png"))
+# C:\Users\Administrator\PycharmProjects\wechatbot\template\huaweip20pro\copy_item\copy_item.png
+# match_image_by_match_template_func(PATH(r"../screenshot/case1.png"), PATH(r"../template/huaweip20pro/case1_link1.png"))
+match_image_by_match_template_func(PATH(r"../backup/copy3.png"), PATH(r"../template/huaweip20pro/copy_item/copy_item.png"))

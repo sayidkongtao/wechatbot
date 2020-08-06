@@ -86,7 +86,7 @@ class Utils:
                 h, w = source.shape
                 x = x * mobile_window_width / w
                 y = y * mobile_window_height / h
-
+            logger.info("Get the location by compare the screenshot: {}".format({"x": x, "y": y}))
             return {"x": x, "y": y}
         else:
             return None
@@ -268,6 +268,38 @@ class MobileFunction:
         else:
             logger.error(
                 "Failed to get the details message after 60s, since cannot get the messgae by double click element")
+
+        return message
+
+    def get_details_message_by_copy_past_item(self, x, y, copy_item_path, time_out=60):
+        message = None
+        touch_action = TouchAction(self.driver)
+        current = time.time()
+        logger.info("The details_message coordinate is {} {}".format(x, y))
+        while time.time() - current < time_out:
+            touch_action.long_press(x=x, y=y, duration=500).release().perform()
+            time.sleep(1)
+
+            current_screenshot = os.path.join(copy_item_path, "current_screenshot_copy.png")
+            self.driver.save_screenshot(current_screenshot)
+            time.sleep(1)
+
+            loc = Utils.match_image_by_match_template_func(current_screenshot, os.path.join(
+                copy_item_path,
+                "copy_item.png"
+            ))
+
+            if loc:
+                self.tap(loc["x"], loc["y"])
+                time.sleep(1)
+                message = self.driver.get_clipboard_text()
+                break
+
+        if message:
+            logger.info("Success to get the details message: {}".format(message))
+        else:
+            logger.error(
+                "Failed to get the details message after 60s")
 
         return message
 
@@ -508,9 +540,9 @@ class AndroidProcess:
                 if flag_count > 0:
                     flag_count = flag_count - 1
                     rect = self.mobile_function.get_rect(latest_message[i])
-                    x = rect["x"] + rect["width"] - 30
-                    y = rect["y"] + rect["height"] - 30
-                    message = self.mobile_function.double_tap_ele_to_get_details_message(x=x, y=y, try_count=60)
+                    x = rect["x"] + rect["width"]/3
+                    y = rect["y"] + rect["height"]/3
+                    message = self.mobile_function.get_details_message_by_copy_past_item(x=x, y=y, time_out=60)
 
                     if message:
                         if message == data.send_message:
@@ -551,7 +583,7 @@ class AndroidProcess:
             link_screenshot_list = []
             for link_template_screenshot in link_template_screenshot_list:
                 # 获取 link样例图片在原图中的坐标
-                loc = Utils.match_image_by_flann_func(current_screenshot,
+                loc = Utils.match_image_by_match_template_func(current_screenshot,
                                                       PATH(
                                                           os.path.join("template", "common", link_template_screenshot)))
 
@@ -571,10 +603,6 @@ class AndroidProcess:
                         self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
                     except Exception as e:
                         logger.error(e)
-                        back_btn = self.mobile_function.is_element_visible(AndroidMobilePageObject.back_btn())
-                        if back_btn:
-                            self.mobile_function.click(back_btn)
-
                         logger.error("No link template matched for: " + current_link_screenshot)
                         current_link_screenshot = "No link template matched for: " + current_link_screenshot
                 else:
@@ -733,8 +761,9 @@ class IOSProcess:
                 for link_template_screenshot in link_template_screenshot_list:
                     # 获取 link样例图片在原图中的坐标
                     loc = Utils.match_image_by_match_template_func(current_screenshot,
-                                                          PATH(os.path.join("template", "common", link_template_screenshot))
-                                                          , self.driver.get_window_rect())
+                                                                   PATH(os.path.join("template", "common",
+                                                                                     link_template_screenshot))
+                                                                   , self.driver.get_window_rect())
 
                     current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
                                                                                                     link_screenshot_flag))
@@ -742,8 +771,8 @@ class IOSProcess:
                     if loc:
                         try:
                             self.mobile_function.tap(loc["x"], loc["y"])
-                            # 等待页面加载
-                            time.sleep(5)
+                            # todo: 等待页面加载
+                            time.sleep(7)
                             self.mobile_function.save_screenshot_as_png(PATH(current_link_screenshot))
 
                             # 从link页面返回到消息界面
