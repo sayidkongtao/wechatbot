@@ -574,47 +574,50 @@ class AndroidProcess:
                 data.link_from_script = "\n".join(href_link_list)
 
             data.reply_from_script = message_all
-            # 退回到聊天窗口
-            self.mobile_function.tap(x, y)
 
             # 处理回复消息中的link
             link_template_screenshot_list = data.link_template_screenshot.split("\n")
             link_screenshot_flag = 1
             link_screenshot_list = []
-            for link_template_screenshot in link_template_screenshot_list:
-                # 获取 link样例图片在原图中的坐标
-                loc = Utils.match_image_by_match_template_func(current_screenshot,
-                                                      PATH(
-                                                          os.path.join("template", "common", link_template_screenshot)))
+            if len(link_template_screenshot_list) > 0 and len(href_link_list) > 0:
+                for link_template_screenshot in link_template_screenshot_list:
+                    # 获取 link样例图片在原图中的坐标
+                    loc = Utils.match_image_by_match_template_func(current_screenshot,
+                                                          PATH(
+                                                              os.path.join("template", "common", link_template_screenshot)))
 
-                current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
-                                                                                                link_screenshot_flag))
-                # 点击匹配到的link
-                if loc:
-                    try:
-                        self.mobile_function.tap(loc["x"], loc["y"])
-                        # 等待页面加载
-                        time.sleep(5)
-                        self.mobile_function.save_screenshot_as_png(PATH(current_link_screenshot))
+                    current_link_screenshot = os.path.join("screenshot", "case{}_link{}.png".format(data.case_no,
+                                                                                                    link_screenshot_flag))
+                    # 点击匹配到的link
+                    if loc:
+                        try:
+                            self.mobile_function.tap(loc["x"], loc["y"])
+                            # 等待页面加载
+                            time.sleep(5)
+                            self.mobile_function.save_screenshot_as_png(PATH(current_link_screenshot))
 
-                        # 从link页面返回到消息界面
-                        back_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.back_btn())
-                        self.mobile_function.click(back_btn)
-                        self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
-                    except Exception as e:
-                        logger.error(e)
+                            # 从link页面返回到消息界面
+                            back_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.back_btn())
+                            self.mobile_function.click(back_btn)
+                            self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
+                        except Exception as e:
+                            logger.error(e)
+                            logger.error("No link template matched for: " + current_link_screenshot)
+                            current_link_screenshot = "No link template matched for: " + current_link_screenshot
+                    else:
                         logger.error("No link template matched for: " + current_link_screenshot)
                         current_link_screenshot = "No link template matched for: " + current_link_screenshot
-                else:
-                    logger.error("No link template matched for: " + current_link_screenshot)
-                    current_link_screenshot = "No link template matched for: " + current_link_screenshot
 
-                link_screenshot_flag = link_screenshot_flag + 1
-                link_screenshot_list.append(current_link_screenshot)
+                    link_screenshot_flag = link_screenshot_flag + 1
+                    link_screenshot_list.append(current_link_screenshot)
 
-            if len(link_screenshot_list) > 0:
+                if len(link_screenshot_list) > 0:
+                    # I 给link_screenshot_from_script赋值
+                    data.link_screenshot_from_script = "\n".join(link_screenshot_list)
+            elif len(link_template_screenshot_list) > 0 and len(href_link_list) == 0:
+                logger.error("回复消息中没有link")
                 # I 给link_screenshot_from_script赋值
-                data.link_screenshot_from_script = "\n".join(link_screenshot_list)
+                data.link_screenshot_from_script = "回复消息中没有link"
 
     def _init_test_data(self, data):
         pass
@@ -754,10 +757,13 @@ class IOSProcess:
                 # link_from_script
                 data.link_from_script = "\n".join(href_link_list)
 
-                # 处理回复消息中的link
-                link_template_screenshot_list = data.link_template_screenshot.split("\n")
-                link_screenshot_flag = 1
-                link_screenshot_list = []
+            data.reply_from_script = message
+
+            # 处理回复消息中的link
+            link_template_screenshot_list = data.link_template_screenshot.split("\n")
+            link_screenshot_flag = 1
+            link_screenshot_list = []
+            if len(link_template_screenshot_list) > 0 and len(href_link_list) > 0:
                 for link_template_screenshot in link_template_screenshot_list:
                     # 获取 link样例图片在原图中的坐标
                     loc = Utils.match_image_by_match_template_func(current_screenshot,
@@ -793,10 +799,10 @@ class IOSProcess:
                 if len(link_screenshot_list) > 0:
                     # I 给link_screenshot_from_script赋值
                     data.link_screenshot_from_script = "\n".join(link_screenshot_list)
-            else:
-                logger.info('回复消息中没有可点击的超链接')
-
-            data.reply_from_script = message
+            elif len(link_template_screenshot_list) > 0 and len(href_link_list) == 0:
+                logger.error("回复消息中没有link")
+                # I 给link_screenshot_from_script赋值
+                data.link_screenshot_from_script = "回复消息中没有link"
 
 
 class CaseDataModel:
