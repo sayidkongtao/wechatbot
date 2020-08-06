@@ -732,7 +732,7 @@ class IOSProcess:
                 link_screenshot_list = []
                 for link_template_screenshot in link_template_screenshot_list:
                     # 获取 link样例图片在原图中的坐标
-                    loc = Utils.match_image_by_flann_func(current_screenshot,
+                    loc = Utils.match_image_by_match_template_func(current_screenshot,
                                                           PATH(os.path.join("template", "common", link_template_screenshot))
                                                           , self.driver.get_window_rect())
 
@@ -752,10 +752,6 @@ class IOSProcess:
                             self.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
                         except Exception as e:
                             logger.error(e)
-                            back_btn = self.mobile_function.is_element_visible(IOSMobilePageObject.back_btn())
-                            if back_btn:
-                                self.mobile_function.click(back_btn)
-
                             logger.error("No link template matched for: " + current_link_screenshot)
                             current_link_screenshot = "No link template matched for: " + current_link_screenshot
                     else:
