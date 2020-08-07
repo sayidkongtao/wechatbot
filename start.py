@@ -868,12 +868,24 @@ def android_steps():
                 android_process.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
             except Exception as e:
                 try:
+                    driver.close_app()
+                    time.sleep(2)
                     driver.launch_app()
                     android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
                 except Exception as e:
                     logger.warn(e)
-                    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
-                    android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+                    retry_count = 5
+                    while retry_count > 0:
+                        logger.info("Wait 10s to restart the driver")
+                        time.sleep(10)
+                        try:
+                            driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
+                            android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+                            break
+                        except Exception as e:
+                            logger.warn(e)
+                            logger.warn("Driver error, wait to restart driver")
+                        retry_count = retry_count - 1
 
             android_process.deal_with_test_data(test_data)
         except Exception as e:
@@ -922,8 +934,17 @@ def ios_steps():
                     ios_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
                 except Exception as e:
                     logger.warn(e)
-                    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_ios_wechat)
-                    ios_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+                    retry_count = 5
+                    while retry_count > 0:
+                        time.sleep(10)
+                        try:
+                            driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_ios_wechat)
+                            ios_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+                            break
+                        except Exception as e:
+                            logger.warn(e)
+                            logger.warn("Driver error, wait to restart driver")
+                        retry_count = retry_count - 1
 
             ios_process.deal_with_test_data(test_data)
         except Exception as e:
