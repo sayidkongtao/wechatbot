@@ -757,7 +757,7 @@ class IOSProcess:
                     logger.info("Get the message: " + message)
                     if message.endswith(data.send_message):
                         break
-                    message = message.replace(wechat_name, "")
+                    message = message.replace(wechat_name + "说".decode("utf-8"), "")
                     if message not in message_list:
                         message_list.append(message)
 
@@ -972,7 +972,7 @@ if __name__ == '__main__':
     # 1. 从excel读取数据
     test_data_dict = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
     config_data = test_data_dict["config_data"]
-    logger.info("配置信息为: {}".format(config_data))
+    logger.info("配置信息为: os = {}, 公众号 = {}".format(config_data["os"], config_data["name"]))
 
     os_name = config_data["os"].lower()
 
