@@ -14,6 +14,7 @@ from openpyxl import load_workbook
 import logging
 import re
 from urllib import unquote
+from openpyxl.styles import PatternFill
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -185,14 +186,23 @@ class Utils:
         :param start_row:
         :return:
         """
+        red_fill = PatternFill("solid", fgColor="FF0000")
+        green_fill = PatternFill("solid", fgColor="00008000")
         wb = load_workbook(file_name)
         work_sheet = wb["data"]
         for data in data_list:
-            work_sheet["F" + str(start_row)] = data.reply_from_script
-            work_sheet["G" + str(start_row)] = data.link_from_script
-            work_sheet["H" + str(start_row)] = data.screenshot_from_script
-            work_sheet["I" + str(start_row)] = data.link_screenshot_from_script
-            work_sheet["J" + str(start_row)] = data.reply_cost_time_from_script
+            work_sheet["F" + str(start_row)].value = data.reply_from_script
+            work_sheet["G" + str(start_row)].value = data.link_from_script
+            work_sheet["H" + str(start_row)].value = data.screenshot_from_script
+            work_sheet["I" + str(start_row)].value = data.link_screenshot_from_script
+            work_sheet["J" + str(start_row)].value = data.reply_cost_time_from_script
+            if data.reply_from_script == data.reply:
+                work_sheet["K" + str(start_row)].value = "Pass"
+                work_sheet["K" + str(start_row)].fill = green_fill
+            else:
+                work_sheet["K" + str(start_row)].value = "Failed"
+                work_sheet["K" + str(start_row)].fill = red_fill
+
             start_row = start_row + 1
         wb.save(file_name)
 
