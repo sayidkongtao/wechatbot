@@ -158,18 +158,23 @@ class Utils:
         :return:
         """
         wb = load_workbook(file_name)
-        work_sheet = wb[wb.sheetnames[0]]
+        work_sheet = wb["data"]
         test_data = []
         flag_count = 0
         for row in work_sheet.values:
             if flag_count == 0:
                 test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8],
-                                               row[9]))
+                                               row[9], row[10]))
                 flag_count = flag_count + 1
             else:
-                test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], None, None, None, None, None))
+                test_data.append(CaseDataModel(row[0], row[1], row[2], row[3], row[4], None, None, None, None, None,
+                                               None))
+
+        config_sheet = wb["config"]
+        config_data = {"os": config_sheet["A2"].value, "name": config_sheet["B2"].value}
         wb.close()
-        return test_data
+
+        return {"test_data": test_data, "config_data": config_data}
 
     @staticmethod
     def write_data_into_excel(file_name, data_list, start_row=2):
@@ -181,7 +186,7 @@ class Utils:
         :return:
         """
         wb = load_workbook(file_name)
-        work_sheet = wb[wb.sheetnames[0]]
+        work_sheet = wb["data"]
         for data in data_list:
             work_sheet["F" + str(start_row)] = data.reply_from_script
             work_sheet["G" + str(start_row)] = data.link_from_script
@@ -275,7 +280,7 @@ class MobileFunction:
         message = None
         touch_action = TouchAction(self.driver)
         current = time.time()
-        logger.info("The details_message coordinate is {} {}".format(x, y))
+        logger.info("信息的坐标是 x = {}, y = {}".format(x, y))
         while time.time() - current < time_out:
             touch_action.long_press(x=x, y=y, duration=500).release().perform()
             time.sleep(1)
@@ -296,10 +301,9 @@ class MobileFunction:
                 break
 
         if message:
-            logger.info("Success to get the details message: {}".format(message))
+            logger.info("成功获取到信息: {}".format(message))
         else:
-            logger.error(
-                "Failed to get the details message after 60s")
+            logger.error("在60s内获取信息失败")
 
         return message
 
@@ -473,7 +477,7 @@ class AndroidProcess:
 
     def send_message_then_calculating_time_taken_to_reply(self, value):
         value = value.decode("utf-8")
-        logger.info("Send the message: " + value)
+        logger.info("发送信息: " + value)
         # self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
         time.sleep(1)
         ele_message = self.mobile_function.is_element_visible(AndroidMobilePageObject.message_btn())
@@ -494,11 +498,11 @@ class AndroidProcess:
                 break
         if self.get_reply_time:
             cost_time = str(self.get_reply_time - self.send_message_time)
-            logger.info("Cost time is: " + cost_time)
+            logger.info("回复信息反应时间: " + cost_time)
             self.get_reply_time = None
             return cost_time
         else:
-            logger.error("Failed to get the cost time after 30s")
+            logger.error("在30s内获取回复信息反应时间失败")
             return None
 
     def deal_with_test_data(self, data):
@@ -507,7 +511,7 @@ class AndroidProcess:
         :param data:
         :return:
         """
-        logger.info("Start to deal with case: " + data.case_no)
+        logger.info("开始处理case: " + data.case_no)
 
         # 发送的信息并获取回复时间
         result_reply = self.send_message_then_calculating_time_taken_to_reply(data.send_message)
@@ -515,7 +519,7 @@ class AndroidProcess:
             # J 给reply_cost_time_from_script赋值
             data.reply_cost_time_from_script = result_reply
         else:
-            data.reply_cost_time = "Failed to get the cost time after 30s"
+            data.reply_cost_time = "在30s内获取回复信息反应时间失败"
 
         # 隐藏键盘
         ele_menu_btn = self.mobile_function.is_element_visible(AndroidMobilePageObject.menu_btn())
@@ -668,9 +672,9 @@ class IOSProcess:
 
         # ele_title_in_chat = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
 
-    def send_message_then_calculating_time_taken_to_reply(self, value):
+    def send_message_then_calculating_time_taken_to_reply(self, value, wechat_name):
         value = value.decode("utf-8")
-        logger.info("Send the message: " + value)
+        logger.info("发送信息: " + value)
         # self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
         time.sleep(1)
         ele_message = self.mobile_function.is_element_visible(IOSMobilePageObject.message_btn())
@@ -687,33 +691,33 @@ class IOSProcess:
         while time.time() - self.send_message_time < 30:
             latest_message = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
             text = self.mobile_function.get_text(latest_message)
-            if text.startswith("大众汽车金融中国测试号".decode("utf-8")) or text.startswith("该公众号提供的服务出现故障".decode("utf-8")):
+            if text.startswith(wechat_name) or text.startswith("该公众号提供的服务出现故障".decode("utf-8")):
                 self.get_reply_time = time.time()
                 break
         if self.get_reply_time:
             cost_time = str(self.get_reply_time - self.send_message_time)
-            logger.info("Cost time is: " + cost_time)
+            logger.info("取回复信息反应时间: " + cost_time)
             self.get_reply_time = None
             return cost_time
         else:
-            logger.error("Failed to get the cost time after 30s")
+            logger.error("在30s内获取回复信息反应时间失败")
             return None
 
-    def deal_with_test_data(self, data):
+    def deal_with_test_data(self, data, wechat_name):
         """
 
         :param data:
         :return:
         """
-        logger.info("Start to deal with case: " + data.case_no)
+        logger.info("开始处理case: " + data.case_no)
 
         # 发送的信息并获取回复时间
-        result_reply = self.send_message_then_calculating_time_taken_to_reply(data.send_message)
+        result_reply = self.send_message_then_calculating_time_taken_to_reply(data.send_message, wechat_name)
         if result_reply:
             # J 给reply_cost_time_from_script赋值
             data.reply_cost_time_from_script = result_reply
         else:
-            data.reply_cost_time = "Failed to get the cost time after 30s"
+            data.reply_cost_time = "在30s内获取回复信息反应时间失败"
 
         # 隐藏键盘
         ele_menu_btn = self.mobile_function.is_element_visible(IOSMobilePageObject.menu_btn())
@@ -743,7 +747,7 @@ class IOSProcess:
                     logger.info("Get the message: " + message)
                     if message.endswith(data.send_message):
                         break
-                    message = message.replace("大众汽车金融中国测试号说".decode("utf-8"), "")
+                    message = message.replace(wechat_name, "")
                     if message not in message_list:
                         message_list.append(message)
 
@@ -816,7 +820,7 @@ class CaseDataModel:
 
     def __init__(self, case_no, send_message, reply, link_template_screenshot_folder, link_template_screenshot,
                  reply_from_script, link_from_script, screenshot_from_script, link_screenshot_from_script,
-                 reply_cost_time_from_script):
+                 reply_cost_time_from_script, result):
         self.case_no = str(case_no)
         self.send_message = send_message
         self.reply = reply
@@ -827,6 +831,7 @@ class CaseDataModel:
         self.screenshot_from_script = screenshot_from_script
         self.link_screenshot_from_script = link_screenshot_from_script
         self.reply_cost_time_from_script = reply_cost_time_from_script
+        self.result = result
 
 
 def clean_data():
@@ -836,7 +841,7 @@ def clean_data():
         os.remove(file_path)
 
 
-def android_steps():
+def android_steps(test_data_list, wechat_name):
     desired_caps_android_wechat = {
         "platformName": "Android",
         "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", "10"),
@@ -850,15 +855,14 @@ def android_steps():
     }
 
     # 1. 从excel读取数据
-    test_data_list = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
     test_data_list_copy = test_data_list[1:]
-    logger.info("Total cases: " + str(len(test_data_list_copy)))
+    logger.info("Android case 统计: " + str(len(test_data_list_copy)))
 
     driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
     android_process = AndroidProcess(driver)
 
     # 2. 进入公众号
-    android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+    android_process.go_into_volkswagen_official_account(wechat_name)
 
     # 3. 处理消息
     for test_data in test_data_list_copy:
@@ -871,20 +875,19 @@ def android_steps():
                     driver.close_app()
                     time.sleep(2)
                     driver.launch_app()
-                    android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+                    android_process.go_into_volkswagen_official_account(wechat_name)
                 except Exception as e:
                     logger.warn(e)
                     retry_count = 5
                     while retry_count > 0:
-                        logger.info("Wait 10s to restart the driver")
+                        logger.info("需要等待10s,然后重启driver")
                         time.sleep(10)
                         try:
                             driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
-                            android_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+                            android_process.go_into_volkswagen_official_account(wechat_name)
                             break
                         except Exception as e:
                             logger.warn(e)
-                            logger.warn("Driver error, wait to restart driver")
                         retry_count = retry_count - 1
 
             android_process.deal_with_test_data(test_data)
@@ -896,7 +899,7 @@ def android_steps():
     logger.info("write_data_into_excel")
 
 
-def ios_steps():
+def ios_steps(test_data_list, wechat_name):
     desired_caps_ios_wechat = {
         "platformName": "iOS",
         "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "12.2"),
@@ -910,15 +913,14 @@ def ios_steps():
     }
 
     # 1. 从excel读取数据
-    test_data_list = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
     test_data_list_copy = test_data_list[1:]
-    logger.info("Total cases: " + str(len(test_data_list_copy)))
+    logger.info("IOS case 统计: " + str(len(test_data_list_copy)))
 
     driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_ios_wechat)
     ios_process = IOSProcess(driver)
 
     # 2. 进入公众号
-    ios_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+    ios_process.go_into_volkswagen_official_account(wechat_name)
 
     # 3. 处理消息
     for test_data in test_data_list_copy:
@@ -931,22 +933,22 @@ def ios_steps():
                     driver.close_app()
                     time.sleep(2)
                     driver.launch_app()
-                    ios_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+                    ios_process.go_into_volkswagen_official_account(wechat_name)
                 except Exception as e:
                     logger.warn(e)
                     retry_count = 5
                     while retry_count > 0:
+                        logger.info("需要等待10s,然后重启driver")
                         time.sleep(10)
                         try:
                             driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_ios_wechat)
-                            ios_process.go_into_volkswagen_official_account("大众汽车金融中国测试号")
+                            ios_process.go_into_volkswagen_official_account(wechat_name)
                             break
                         except Exception as e:
                             logger.warn(e)
-                            logger.warn("Driver error, wait to restart driver")
                         retry_count = retry_count - 1
 
-            ios_process.deal_with_test_data(test_data)
+            ios_process.deal_with_test_data(test_data, wechat_name)
         except Exception as e:
             logger.info(e)
 
@@ -957,6 +959,18 @@ def ios_steps():
 
 if __name__ == '__main__':
     clean_data()
-    # android_steps()
-    ios_steps()
-    logger.info("Finished: ")
+    # 1. 从excel读取数据
+    test_data_dict = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
+    config_data = test_data_dict["config_data"]
+    logger.info("配置信息为: {}".format(config_data))
+
+    os_name = config_data["os"].lower()
+
+    if os_name == "android":
+        android_steps(test_data_dict["test_data"], config_data["name"])
+    elif os_name == "ios":
+        ios_steps(test_data_dict["test_data"], config_data["name"])
+    else:
+        logger.error("请正确配置excel中config sheet中系统信息")
+
+    logger.info("完成测试: ")
