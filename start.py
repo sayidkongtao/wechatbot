@@ -83,7 +83,7 @@ class Utils:
             if mobile_window_rect:
                 mobile_window_width = mobile_window_rect["width"]
                 mobile_window_height = mobile_window_rect["height"]
-                h, w = source.shape
+                h, w, c = source.shape
                 x = x * mobile_window_width / w
                 y = y * mobile_window_height / h
             logger.info("Get the location by compare the screenshot: {}".format({"x": x, "y": y}))
@@ -936,6 +936,6 @@ def ios_steps():
 
 if __name__ == '__main__':
     clean_data()
-    android_steps()
-    # ios_steps()
+    # android_steps()
+    ios_steps()
     logger.info("Finished: ")
