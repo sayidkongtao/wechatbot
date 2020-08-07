@@ -305,6 +305,7 @@ class MobileFunction:
 
     def save_screenshot_as_png(self, file_name):
         self.driver.save_screenshot(filename=file_name)
+        logger.info("Capture the screen: {}".format(file_name))
 
 
 class AndroidMobilePageObject:
@@ -598,7 +599,7 @@ class AndroidProcess:
                         try:
                             self.mobile_function.tap(loc["x"], loc["y"])
                             # 等待页面加载
-                            time.sleep(5)
+                            time.sleep(7)
                             self.mobile_function.save_screenshot_as_png(PATH(current_link_screenshot))
 
                             # 从link页面返回到消息界面
