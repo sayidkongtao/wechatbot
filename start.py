@@ -893,9 +893,10 @@ def android_steps(test_data_list, wechat_name):
                         logger.info("需要等待10s,然后重启driver")
                         time.sleep(10)
                         try:
-                            driver.close()
+                            driver.quit()
                             time.sleep(2)
                             driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_android_wechat)
+                            android_process = AndroidProcess(driver)
                             android_process.go_into_volkswagen_official_account(wechat_name)
                             break
                         except Exception as e:
