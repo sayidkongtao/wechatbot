@@ -253,7 +253,7 @@ class MobileFunction:
 
     def tap(self, x, y):
         touch_action = TouchAction(self.driver)
-        touch_action.tap(x=x, y=y, count=1).release().perform()
+        touch_action.tap(x=int(x), y=int(y)).release().perform()
 
     def double_tap(self, x, y):
         action1 = TouchAction(self.driver).long_press(x=x, y=y, duration=500).release()
@@ -292,7 +292,7 @@ class MobileFunction:
         current = time.time()
         logger.info("信息的坐标是 x = {}, y = {}".format(x, y))
         while time.time() - current < time_out:
-            touch_action.long_press(x=x, y=y, duration=500).release().perform()
+            touch_action.long_press(x=int(x), y=int(y), duration=500).release().perform()
             time.sleep(1)
 
             current_screenshot = os.path.join(copy_item_path, "current_screenshot_copy.png")
@@ -893,7 +893,10 @@ def android_steps(test_data_list, wechat_name):
                         logger.info("需要等待10s,然后重启driver")
                         time.sleep(10)
                         try:
-                            driver.quit()
+                            try:
+                                driver.quit()
+                            except Exception:
+                                pass
                             time.sleep(2)
                             driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_android_wechat)
                             android_process = AndroidProcess(driver)
@@ -954,10 +957,14 @@ def ios_steps(test_data_list, wechat_name):
                         logger.info("需要等待10s,然后重启driver")
                         time.sleep(10)
                         try:
-                            driver.close()
+                            try:
+                                driver.quit()
+                            except Exception:
+                                pass
                             time.sleep(2)
                             driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
                             ios_process.go_into_volkswagen_official_account(wechat_name)
+                            ios_process = IOSProcess(driver)
                             break
                         except Exception as e:
                             logger.warn(e)
