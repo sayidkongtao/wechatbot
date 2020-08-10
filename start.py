@@ -893,6 +893,8 @@ def android_steps(test_data_list, wechat_name):
                         logger.info("需要等待10s,然后重启driver")
                         time.sleep(10)
                         try:
+                            driver.close()
+                            time.sleep(2)
                             driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
                             android_process.go_into_volkswagen_official_account(wechat_name)
                             break
@@ -951,6 +953,8 @@ def ios_steps(test_data_list, wechat_name):
                         logger.info("需要等待10s,然后重启driver")
                         time.sleep(10)
                         try:
+                            driver.close()
+                            time.sleep(2)
                             driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_ios_wechat)
                             ios_process.go_into_volkswagen_official_account(wechat_name)
                             break
