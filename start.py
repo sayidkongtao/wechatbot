@@ -928,7 +928,7 @@ def ios_steps(test_data_list, wechat_name):
     test_data_list_copy = test_data_list[1:]
     logger.info("IOS case 统计: " + str(len(test_data_list_copy)))
 
-    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_ios_wechat)
+    driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
     ios_process = IOSProcess(driver)
 
     # 2. 进入公众号
@@ -955,7 +955,7 @@ def ios_steps(test_data_list, wechat_name):
                         try:
                             driver.close()
                             time.sleep(2)
-                            driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_ios_wechat)
+                            driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
                             ios_process.go_into_volkswagen_official_account(wechat_name)
                             break
                         except Exception as e:
