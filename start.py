@@ -333,7 +333,7 @@ class AndroidMobilePageObject:
 
     @staticmethod
     def address_book_in_home_page():
-        return (MobileBy.XPATH, "(//*[@resource-id='com.tencent.mm:id/cns'])[2]")
+        return (MobileBy.XPATH, "(//*[@resource-id='com.tencent.mm:id/cn_'])[2]")
 
     @staticmethod
     def gongzong_number_item():
@@ -868,7 +868,7 @@ def android_steps(test_data_list, wechat_name):
     test_data_list_copy = test_data_list[1:]
     logger.info("Android case 统计: " + str(len(test_data_list_copy)))
 
-    driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
+    driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_android_wechat)
     android_process = AndroidProcess(driver)
 
     # 2. 进入公众号
@@ -895,7 +895,7 @@ def android_steps(test_data_list, wechat_name):
                         try:
                             driver.close()
                             time.sleep(2)
-                            driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps_android_wechat)
+                            driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_android_wechat)
                             android_process.go_into_volkswagen_official_account(wechat_name)
                             break
                         except Exception as e:
