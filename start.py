@@ -855,7 +855,7 @@ def android_steps(test_data_list, wechat_name):
     desired_caps_android_wechat = {
         "platformName": "Android",
         "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", "10"),
-        "automationName": os.getenv("APPIUM_AUTOMATION_NAME", "Appium"),
+        "automationName": os.getenv("APPIUM_AUTOMATION_NAME", "UiAutomator2"),
         "appActivity": os.getenv("APPIUM_APP_ACTIVITY", "com.tencent.mm.ui.LauncherUI"),
         "appPackage": os.getenv("APPIUM_APP_PACKAGE", "com.tencent.mm"),
         "deviceName": os.getenv("APPIUM_DEVICE_NAME", "AKC7N18907000186"),
