@@ -861,6 +861,8 @@ def android_steps(test_data_list, wechat_name):
         "deviceName": os.getenv("APPIUM_DEVICE_NAME", "AKC7N18907000186"),
         "newCommandTimeout": 7200,
         "noReset": True,
+        "unicodeKeyboard": True,
+        'resetKeyboard': True,
         'chromeOptions': {'androidProcess': 'com.tencent.mm:tools'}
     }
 
