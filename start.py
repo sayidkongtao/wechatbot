@@ -497,8 +497,10 @@ class AndroidProcess:
         ele_message_input = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.message_input())
         self.mobile_function.send_text(ele_message_input, value)
         ele_message_send_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.message_send_btn())
+        # 初始化时间
+        self.get_reply_time = None
         self.mobile_function.click(ele_message_send_btn)
-        time.sleep(0.2)
+        time.sleep(0.1)
         self.send_message_time = time.time()
 
         while time.time() - self.send_message_time < 30:
@@ -513,7 +515,6 @@ class AndroidProcess:
         if self.get_reply_time:
             cost_time = str(self.get_reply_time - self.send_message_time)
             logger.info("回复信息反应时间: " + cost_time)
-            self.get_reply_time = None
             return cost_time
         else:
             logger.error("在30s内获取回复信息反应时间失败")
@@ -698,8 +699,11 @@ class IOSProcess:
         ele_message_input = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.message_input())
         self.mobile_function.send_text(ele_message_input, value)
         ele_message_send_btn = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.message_send_btn())
+
+        # 初始化时间
+        self.get_reply_time = None
         self.mobile_function.click(ele_message_send_btn)
-        time.sleep(0.2)
+        time.sleep(0.1)
         self.send_message_time = time.time()
 
         while time.time() - self.send_message_time < 30:
@@ -715,7 +719,6 @@ class IOSProcess:
         if self.get_reply_time:
             cost_time = str(self.get_reply_time - self.send_message_time)
             logger.info("取回复信息反应时间: " + cost_time)
-            self.get_reply_time = None
             return cost_time
         else:
             logger.error("在30s内获取回复信息反应时间失败")
