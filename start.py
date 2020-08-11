@@ -965,8 +965,8 @@ def ios_steps(test_data_list, wechat_name):
                                 pass
                             time.sleep(2)
                             driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
-                            ios_process.go_into_volkswagen_official_account(wechat_name)
                             ios_process = IOSProcess(driver)
+                            ios_process.go_into_volkswagen_official_account(wechat_name)
                             break
                         except Exception as e:
                             logger.warn(e)
