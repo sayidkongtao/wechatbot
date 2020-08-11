@@ -502,10 +502,14 @@ class AndroidProcess:
         self.send_message_time = time.time()
 
         while time.time() - self.send_message_time < 30:
-            contact_photos = self.mobile_function.find_elements(AndroidMobilePageObject.contact_photo())
-            if len(contact_photos) > 0 and self.mobile_function.get_rect(contact_photos[-1])["x"] < 500:
-                self.get_reply_time = time.time()
-                break
+            try:
+                contact_photos = self.mobile_function.find_elements(AndroidMobilePageObject.contact_photo())
+                if len(contact_photos) > 0 and self.mobile_function.get_rect(contact_photos[-1])["x"] < 500:
+                    self.get_reply_time = time.time()
+                    break
+            except Exception as e:
+                pass
+
         if self.get_reply_time:
             cost_time = str(self.get_reply_time - self.send_message_time)
             logger.info("回复信息反应时间: " + cost_time)
@@ -699,11 +703,15 @@ class IOSProcess:
         self.send_message_time = time.time()
 
         while time.time() - self.send_message_time < 30:
-            latest_message = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
-            text = self.mobile_function.get_text(latest_message)
-            if text.startswith(wechat_name) or text.startswith("该公众号提供的服务出现故障".decode("utf-8")):
-                self.get_reply_time = time.time()
-                break
+            try:
+                latest_message = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
+                text = self.mobile_function.get_text(latest_message)
+                if text.startswith(wechat_name) or text.startswith("该公众号提供的服务出现故障".decode("utf-8")):
+                    self.get_reply_time = time.time()
+                    break
+            except Exception as e:
+                pass
+
         if self.get_reply_time:
             cost_time = str(self.get_reply_time - self.send_message_time)
             logger.info("取回复信息反应时间: " + cost_time)
