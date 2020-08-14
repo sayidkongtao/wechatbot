@@ -886,7 +886,6 @@ def android_steps(test_data_list, wechat_name):
 
     # 2. 进入公众号
     android_process.go_into_volkswagen_official_account(wechat_name)
-
     # 3. 处理消息
     for test_data in test_data_list_copy:
         try:
@@ -937,8 +936,8 @@ def ios_steps(test_data_list, wechat_name):
         "udid": os.getenv("APP_UDID", "029d553ea04ba899509dc0630fda19bdac61231a"),
         "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
         "newCommandTimeout": 7200,
-        "startIWDP": True,
-        "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
+        "startIWDP": True
+        # "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
     }
 
     # 1. 从excel读取数据
@@ -949,10 +948,34 @@ def ios_steps(test_data_list, wechat_name):
     ios_process = IOSProcess(driver)
 
     # 2. 进入公众号
-    ios_process.go_into_volkswagen_official_account(wechat_name)
+    retry_count = 5
+    while retry_count > 0:
+        retry_count = retry_count - 1
+        try:
+            ios_process.go_into_volkswagen_official_account(wechat_name)
+            break
+        except Exception as e:
+            driver.close_app()
+            time.sleep(2)
+            driver.launch_app()
+            ios_process.go_into_volkswagen_official_account(wechat_name)
 
+    flag_count = 1
     # 3. 处理消息
     for test_data in test_data_list_copy:
+
+        if flag_count % 10 == 0:
+            logger.info("对于IOS，每执行十次，重启一次App")
+            try:
+                driver.close_app()
+                time.sleep(2)
+                driver.launch_app()
+                ios_process.go_into_volkswagen_official_account(wechat_name)
+            except Exception as e:
+                pass
+
+        flag_count = flag_count + 1
+
         try:
             # 需要判断是否回到主界面
             try:
