@@ -15,6 +15,7 @@ import logging
 import re
 from urllib import unquote
 from openpyxl.styles import PatternFill
+import shutil
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -1032,3 +1033,16 @@ if __name__ == '__main__':
         logger.error("请正确配置excel中config sheet中系统信息")
 
     logger.info("完成测试: ")
+
+    parent_folder = PATH(os.path.join(
+        os.getenv("APPIUM_SCREENSHOT_DIR"),
+        "output"
+    ))
+
+    shutil.copytree(PATH("screenshot"), os.path.join(parent_folder, "screenshots"))
+    shutil.copy(PATH("test_case_example.xlsx"), os.path.join(
+        parent_folder,
+        "test_case_example.xlsx"
+    ))
+
+
