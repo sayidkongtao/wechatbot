@@ -937,8 +937,8 @@ def ios_steps(test_data_list, wechat_name):
         "udid": os.getenv("APP_UDID", "029d553ea04ba899509dc0630fda19bdac61231a"),
         "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
         "newCommandTimeout": 7200,
-        "startIWDP": True
-        # "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
+        "startIWDP": True,
+        "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
     }
 
     # 1. 从excel读取数据
@@ -1035,7 +1035,7 @@ if __name__ == '__main__':
     logger.info("完成测试: ")
 
     parent_folder = PATH(os.path.join(
-        os.getenv("APPIUM_SCREENSHOT_DIR"),
+        os.getenv("APPIUM_SCREENSHOT_DIR", "."),
         "output"
     ))
 
