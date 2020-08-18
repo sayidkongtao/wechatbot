@@ -535,7 +535,7 @@ class AndroidProcess:
             # J 给reply_cost_time_from_script赋值
             data.reply_cost_time_from_script = result_reply
         else:
-            data.reply_cost_time = "在30s内获取回复信息反应时间失败"
+            data.reply_cost_time_from_script = "在30s内获取回复信息反应时间失败,请参考截图"
 
         # 隐藏键盘
         ele_menu_btn = self.mobile_function.is_element_visible(AndroidMobilePageObject.menu_btn())
@@ -739,7 +739,7 @@ class IOSProcess:
             # J 给reply_cost_time_from_script赋值
             data.reply_cost_time_from_script = result_reply
         else:
-            data.reply_cost_time = "在30s内获取回复信息反应时间失败"
+            data.reply_cost_time_from_script = "在30s内获取回复信息反应时间失败, 请参考截图"
 
         # 隐藏键盘
         ele_menu_btn = self.mobile_function.is_element_visible(IOSMobilePageObject.menu_btn())
