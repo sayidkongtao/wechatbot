@@ -938,7 +938,7 @@ def ios_steps(test_data_list, wechat_name):
         "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
         "newCommandTimeout": 7200,
         "startIWDP": True,
-        "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
+        # "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
     }
 
     # 1. 从excel读取数据
@@ -959,7 +959,6 @@ def ios_steps(test_data_list, wechat_name):
             driver.close_app()
             time.sleep(2)
             driver.launch_app()
-            ios_process.go_into_volkswagen_official_account(wechat_name)
 
     flag_count = 1
     # 3. 处理消息
