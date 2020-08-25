@@ -1038,6 +1038,9 @@ if __name__ == '__main__':
         "output"
     ))
 
+    if os.path.exists(parent_folder):
+        shutil.rmtree(parent_folder)
+
     shutil.copytree(PATH("screenshot"), os.path.join(parent_folder, "screenshots"))
     shutil.copy(PATH("test_case_example.xlsx"), os.path.join(
         parent_folder,
