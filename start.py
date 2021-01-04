@@ -1,5 +1,4 @@
-# coding=utf-8
-import sys
+# -*- coding: utf-8 -*-
 import numpy as np
 import cv2
 from appium import webdriver
@@ -13,12 +12,9 @@ from appium.webdriver.common.touch_action import TouchAction
 from openpyxl import load_workbook
 import logging
 import re
-from urllib import unquote
+from urllib.parse import unquote
 from openpyxl.styles import PatternFill
 import shutil
-
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 PATH = lambda path: os.path.abspath(
     os.path.join(
@@ -477,7 +473,7 @@ class AndroidProcess:
             AndroidMobilePageObject.search_input_in_gongzong_page()
         )
         # "大众汽车金融中国测试号"
-        self.mobile_function.send_text(ele_search_input_in_gongzong_page, count_name.decode("utf-8"))
+        self.mobile_function.send_text(ele_search_input_in_gongzong_page, count_name)
 
         ele_target_item = self.mobile_function.wait_for_element_visible(
             AndroidMobilePageObject.target_item()
@@ -487,7 +483,7 @@ class AndroidProcess:
         # ele_title_in_chat = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
 
     def send_message_then_calculating_time_taken_to_reply(self, value):
-        value = value.decode("utf-8")
+        value = value
         logger.info("发送信息: " + value)
         # self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
         time.sleep(1)
@@ -678,7 +674,7 @@ class IOSProcess:
             IOSMobilePageObject.search_input_in_gongzong_page()
         )
         # "大众汽车金融中国测试号"
-        self.mobile_function.send_text(ele_search_input_in_gongzong_page, count_name.decode("utf-8"))
+        self.mobile_function.send_text(ele_search_input_in_gongzong_page, count_name)
 
         ele_target_item = self.mobile_function.wait_for_element_presence(
             IOSMobilePageObject.target_item()
@@ -689,7 +685,7 @@ class IOSProcess:
         # ele_title_in_chat = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
 
     def send_message_then_calculating_time_taken_to_reply(self, value, wechat_name):
-        value = value.decode("utf-8")
+        value = value
         logger.info("发送信息: " + value)
         # self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
         time.sleep(1)
@@ -711,7 +707,7 @@ class IOSProcess:
             try:
                 latest_message = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.latest_message())
                 text = self.mobile_function.get_text(latest_message)
-                if text.startswith(wechat_name) or text.startswith("该公众号提供的服务出现故障".decode("utf-8")):
+                if text.startswith(wechat_name) or text.startswith("该公众号提供的服务出现故障"):
                     self.get_reply_time = time.time()
                     break
             except Exception as e:
@@ -769,7 +765,7 @@ class IOSProcess:
                     logger.info("Get the message: " + message)
                     if message.endswith(data.send_message):
                         break
-                    message = message.replace(wechat_name + "说".decode("utf-8"), "")
+                    message = message.replace(wechat_name + "说", "")
                     if message not in message_list:
                         message_list.append(message)
 
@@ -857,10 +853,13 @@ class CaseDataModel:
 
 
 def clean_data():
-    del_list = os.listdir(PATH("screenshot"))
-    for f in del_list:
-        file_path = os.path.join(PATH("screenshot"), f)
-        os.remove(file_path)
+    if os.path.exists(PATH("screenshot")):
+        del_list = os.listdir(PATH("screenshot"))
+        for f in del_list:
+            file_path = os.path.join(PATH("screenshot"), f)
+            os.remove(file_path)
+    else:
+        os.makedirs(PATH("screenshot"))
 
 
 def android_steps(test_data_list, wechat_name):
@@ -945,7 +944,7 @@ def ios_steps(test_data_list, wechat_name):
     test_data_list_copy = test_data_list[1:]
     logger.info("IOS case 统计: " + str(len(test_data_list_copy)))
 
-    driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
+    driver = webdriver.Remote(os.getenv("WEBDRIVER_REMOTE", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
     ios_process = IOSProcess(driver)
 
     # 2. 进入公众号
@@ -998,7 +997,7 @@ def ios_steps(test_data_list, wechat_name):
                             except Exception:
                                 pass
                             time.sleep(2)
-                            driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
+                            driver = webdriver.Remote(os.getenv("WEBDRIVER_REMOTE", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
                             ios_process = IOSProcess(driver)
                             ios_process.go_into_volkswagen_official_account(wechat_name)
                             break
@@ -1033,18 +1032,18 @@ if __name__ == '__main__':
 
     logger.info("完成测试: ")
 
-    parent_folder = PATH(os.path.join(
-        os.getenv("APPIUM_SCREENSHOT_DIR", "."),
-        "output"
-    ))
+    tmp = os.getenv("APPIUM_SCREENSHOT_DIR", ".")
 
-    if os.path.exists(parent_folder):
-        shutil.rmtree(parent_folder)
+    if tmp != ".":
+        parent_folder = PATH(os.path.join(
+            os.getenv("APPIUM_SCREENSHOT_DIR", "."),
+            "output_wechat"
+        ))
 
-    shutil.copytree(PATH("screenshot"), os.path.join(parent_folder, "screenshots"))
-    shutil.copy(PATH("test_case_example.xlsx"), os.path.join(
-        parent_folder,
-        "test_case_example.xlsx"
-    ))
+        shutil.copytree(PATH("screenshot"), os.path.join(parent_folder, "screenshots"))
+        shutil.copy(PATH("test_case_example.xlsx"), os.path.join(
+            parent_folder,
+            "test_case_example.xlsx"
+        ))
 
 

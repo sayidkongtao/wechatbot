@@ -1,7 +1,5 @@
-et-xmlfile==1.0.1
-jdcal==1.4.1
-opencv-python==3.4.2.16
-openpyxl==2.6.4
+opencv-python==4.5.1.48
+numpy==1.19.4
+openpyxl==3.0.5
+Appium-Python-Client==1.0.2
 selenium==3.141.0
-urllib3==1.25.9
-opencv-contrib-python==3.4.2.16
