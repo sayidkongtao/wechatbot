@@ -401,11 +401,11 @@ class IOSMobilePageObject:
 
     @staticmethod
     def search_in_gongzong_page():
-        return (MobileBy.ACCESSIBILITY_ID, "搜索")
+        return (MobileBy.IOS_PREDICATE, "name = '搜索'")
 
     @staticmethod
     def search_input_in_gongzong_page():
-        return (MobileBy.ACCESSIBILITY_ID, "搜索")
+        return (MobileBy.IOS_PREDICATE, "name = '搜索'")
 
     @staticmethod
     def target_item():
@@ -930,13 +930,15 @@ def android_steps(test_data_list, wechat_name):
 def ios_steps(test_data_list, wechat_name):
     desired_caps_ios_wechat = {
         "platformName": "iOS",
-        "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "12.2"),
+        "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "14.1"),
         "deviceName": os.getenv('APP_DEVICE_NAME', "iPhone"),
         "automationName": "XCUITest",
-        "udid": os.getenv("APP_UDID", "029d553ea04ba899509dc0630fda19bdac61231a"),
+        "udid": os.getenv("APP_UDID", "05a9955da755df16df7d4b6b8c27115e143e2c35"),
         "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
         "newCommandTimeout": 7200,
         "startIWDP": True,
+        "unicodeKeyboard": True,
+        'resetKeyboard': True,
         "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
     }
 
