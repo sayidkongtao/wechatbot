@@ -358,7 +358,7 @@ class AndroidMobilePageObject:
 
     @staticmethod
     def message_input():
-        return (MobileBy.ID, "com.tencent.mm:id/al_")
+        return (MobileBy.ID, "com.tencent.mm:id/iy0")
 
     @staticmethod
     def message_send_btn():
@@ -597,7 +597,7 @@ class AndroidProcess:
             data.reply_from_script = message_all
 
             # 处理回复消息中的link
-            link_template_screenshot_list = data.link_template_screenshot.split("\n")
+            link_template_screenshot_list = data.link_template_screenshot.split("\n") if data.link_template_screenshot else []
             link_screenshot_flag = 1
             link_screenshot_list = []
             if len(link_template_screenshot_list) > 0 and len(href_link_list) > 0:
@@ -789,7 +789,7 @@ class IOSProcess:
             data.reply_from_script = message
 
             # 处理回复消息中的link
-            link_template_screenshot_list = data.link_template_screenshot.split("\n")
+            link_template_screenshot_list = data.link_template_screenshot.split("\n") if data.link_template_screenshot else []
             link_screenshot_flag = 1
             link_screenshot_list = []
             if len(link_template_screenshot_list) > 0 and len(href_link_list) > 0:
@@ -899,7 +899,7 @@ def android_steps(test_data_list, wechat_name):
                     driver.launch_app()
                     android_process.go_into_volkswagen_official_account(wechat_name)
                 except Exception as e:
-                    logger.warn(e)
+                    logger.warning(e)
                     retry_count = 5
                     while retry_count > 0:
                         logger.info("需要等待10s,然后重启driver")
@@ -915,12 +915,12 @@ def android_steps(test_data_list, wechat_name):
                             android_process.go_into_volkswagen_official_account(wechat_name)
                             break
                         except Exception as e:
-                            logger.warn(e)
+                            logger.warning(e)
                         retry_count = retry_count - 1
 
             android_process.deal_with_test_data(test_data)
         except Exception as e:
-            logger.warn(e)
+            logger.warning(e)
 
     # 数据写进excel
     Utils.write_data_into_excel(PATH("test_case_example.xlsx"), test_data_list_copy)
@@ -937,7 +937,7 @@ def ios_steps(test_data_list, wechat_name):
         "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
         "newCommandTimeout": 7200,
         "startIWDP": True,
-        # "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
+        "webDriverAgentUrl": os.getenv("WEBDRIVERAGENT_URL", "http://localhost:8100")
     }
 
     # 1. 从excel读取数据
