@@ -358,7 +358,7 @@ class AndroidMobilePageObject:
 
     @staticmethod
     def message_input():
-        return (MobileBy.ID, "com.tencent.mm:id/iy0")
+        return (MobileBy.ID, "com.tencent.mm:id/iy1")
 
     @staticmethod
     def message_send_btn():
@@ -840,8 +840,8 @@ class CaseDataModel:
                  reply_from_script, link_from_script, screenshot_from_script, link_screenshot_from_script,
                  reply_cost_time_from_script, result):
         self.case_no = str(case_no)
-        self.send_message = send_message
-        self.reply = reply
+        self.send_message = str(send_message)
+        self.reply = str(reply)
         self.link_template_screenshot_folder = link_template_screenshot_folder
         self.link_template_screenshot = link_template_screenshot
         self.reply_from_script = reply_from_script
