@@ -318,6 +318,21 @@ class MobileFunction:
         self.driver.save_screenshot(filename=file_name)
         logger.info("Capture the screen: {}".format(file_name))
 
+    def swipe_down(self, t=500, n=1):
+        l = self.driver.get_window_size()
+        x1 = l['width'] * 0.5  # x坐标
+        y1 = l['height'] * 0.25  # 起始y坐标
+        y2 = l['height'] * 0.75  # 终点y坐标
+        for i in range(n):
+            self.swipe(x1, y1, x1, y2, t)
+
+    def swipe(self, x1, y1, x2, y2, t):
+        self.driver.swipe(x1, y1, x2, y2, t)
+
+    def tap_element(self, element):
+        rect = self.get_rect(element)
+        self.tap(rect["x"] + rect["width"] / 2, rect["y"] + rect["height"] / 2)
+
 
 class AndroidMobilePageObject:
 
@@ -330,11 +345,13 @@ class AndroidMobilePageObject:
 
     @staticmethod
     def address_book_in_home_page():
-        return (MobileBy.XPATH, "(//*[@resource-id='com.tencent.mm:id/cn_'])[2]")
+        # return (MobileBy.XPATH, "(//*[@resource-id='com.tencent.mm:id/cn_'])[2]")
+        return (MobileBy.XPATH, "(//*[@resource-id='com.tencent.mm:id/dub'])[2]")
 
     @staticmethod
     def gongzong_number_item():
-        return (MobileBy.XPATH, "(//*[@resource-id='com.tencent.mm:id/b3b'])[4]")
+        # return (MobileBy.XPATH, "(//*[@resource-id='com.tencent.mm:id/b3b'])[4]")
+        return (MobileBy.XPATH, "(//*[@resource-id='com.tencent.mm:id/be3'])[3]")
 
     @staticmethod
     def search_in_gongzong_page():
@@ -342,7 +359,8 @@ class AndroidMobilePageObject:
 
     @staticmethod
     def search_input_in_gongzong_page():
-        return (MobileBy.ID, "com.tencent.mm:id/bhn")
+        # return (MobileBy.ID, "com.tencent.mm:id/bhn")
+        return (MobileBy.ID, "com.tencent.mm:id/bxz")
 
     @staticmethod
     def target_item():
@@ -350,28 +368,35 @@ class AndroidMobilePageObject:
 
     @staticmethod
     def title_in_chat():
-        return (MobileBy.ID, "com.tencent.mm:id/gas")
+        # return (MobileBy.ID, "com.tencent.mm:id/gas")
+        return (MobileBy.ID, "com.tencent.mm:id/ipt")
 
     @staticmethod
     def message_btn():
-        return (MobileBy.ID, "com.tencent.mm:id/aly")
+        # return (MobileBy.ID, "com.tencent.mm:id/aly")
+        return (MobileBy.ID, "com.tencent.mm:id/ava")
 
     @staticmethod
     def message_input():
-        return (MobileBy.ID, "com.tencent.mm:id/iy1")
+        # return (MobileBy.ID, "com.tencent.mm:id/iy1")
+        return (MobileBy.ID, "com.tencent.mm:id/auj")
 
     @staticmethod
     def message_send_btn():
-        return (MobileBy.ID, "com.tencent.mm:id/anv")
+        # return (MobileBy.ID, "com.tencent.mm:id/anv")
+        return (MobileBy.ID, "com.tencent.mm:id/ay5")
+
 
     # 服务按钮 com.tencent.mm:id/g33
     @staticmethod
     def menu_btn():
-        return (MobileBy.ID, "com.tencent.mm:id/g33")
+        # return (MobileBy.ID, "com.tencent.mm:id/g33")
+        return (MobileBy.ID, "com.tencent.mm:id/if8")
 
     @staticmethod
     def latest_message():
-        return (MobileBy.ID, "com.tencent.mm:id/ala")
+        # return (MobileBy.ID, "com.tencent.mm:id/ala")
+        return (MobileBy.ID, "com.tencent.mm:id/auk")
 
     @staticmethod
     def details_message():
@@ -379,12 +404,12 @@ class AndroidMobilePageObject:
 
     @staticmethod
     def contact_photo():
-        return (MobileBy.ID, "com.tencent.mm:id/aku")
+        # return (MobileBy.ID, "com.tencent.mm:id/aku")
+        return (MobileBy.ID, "com.tencent.mm:id/au2")
 
     @staticmethod
     def back_btn():
         return (MobileBy.ID, "com.tencent.mm:id/dn")
-
 
 class IOSMobilePageObject:
 
@@ -492,6 +517,8 @@ class AndroidProcess:
             self.mobile_function.click(ele_message)
 
         ele_message_input = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.message_input())
+        self.mobile_function.tap_element(ele_message_input)
+        time.sleep(1)
         self.mobile_function.send_text(ele_message_input, value)
         ele_message_send_btn = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.message_send_btn())
         # 初始化时间
@@ -506,6 +533,10 @@ class AndroidProcess:
                 if len(contact_photos) > 0 and self.mobile_function.get_rect(contact_photos[-1])["x"] < 500:
                     self.get_reply_time = time.time()
                     break
+                elif len(contact_photos) == 0:
+                    self.get_reply_time = time.time()
+                    break
+
             except Exception as e:
                 pass
 
@@ -547,32 +578,41 @@ class AndroidProcess:
         folder_name = data.link_template_screenshot_folder
         # 获取回复的信息
         if result_reply:
-            latest_message = self.mobile_function.find_elements(AndroidMobilePageObject.latest_message())
-            # 最多取五个消息
-
-            flag_count = len(latest_message) if len(latest_message) < 5 else 5
+            find_send = False
             message_list = []
-
             folder_path = PATH(os.path.join("template", folder_name, "copy_item"))
+            scroll_count = 2
 
-            for i in range(len(latest_message) - 1, -1, -1):
-                if flag_count > 0:
-                    flag_count = flag_count - 1
-                    rect = self.mobile_function.get_rect(latest_message[i])
-                    x = rect["x"] + rect["width"] / 3
-                    y = rect["y"] + rect["height"] / 3
-                    message = self.mobile_function.get_details_message_by_copy_past_item(x=x, y=y,
-                                                                                         copy_item_path=folder_path,
-                                                                                         time_out=60)
+            while (not find_send) and scroll_count > 0:
+                latest_message = self.mobile_function.find_elements(AndroidMobilePageObject.latest_message())
+                # 最多取五个消息
+                flag_count = len(latest_message) if len(latest_message) < 5 else 5
 
-                    if message:
-                        if message == data.send_message:
-                            break
-                        message_list.append(message)
-                    time.sleep(1.5)
-                    latest_message = self.mobile_function.find_elements(AndroidMobilePageObject.latest_message())
-                else:
-                    break
+                for i in range(len(latest_message) - 1, -1, -1):
+                    if flag_count > 0:
+                        flag_count = flag_count - 1
+                        rect = self.mobile_function.get_rect(latest_message[i])
+                        x = rect["x"] + rect["width"] / 3
+                        y = rect["y"] + rect["height"] / 3
+                        message = self.mobile_function.get_details_message_by_copy_past_item(x=x, y=y,
+                                                                                             copy_item_path=folder_path,
+                                                                                             time_out=60)
+
+                        if message:
+                            if message == data.send_message:
+                                find_send = True
+                                break
+
+                            if message not in message_list:
+                                message_list.append(message)
+                        time.sleep(1.5)
+                    else:
+                        break
+
+                if not find_send:
+                    scroll_count = scroll_count - 1
+                    self.mobile_function.swipe_down()
+                    time.sleep(1)
 
             message_all = ""
             if len(message_list) > 0:
@@ -865,11 +905,11 @@ def clean_data():
 def android_steps(test_data_list, wechat_name):
     desired_caps_android_wechat = {
         "platformName": "Android",
-        "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", "10"),
+        "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", "8.1.0"),
         "automationName": os.getenv("APPIUM_AUTOMATION_NAME", "UiAutomator2"),
         "appActivity": os.getenv("APPIUM_APP_ACTIVITY", "com.tencent.mm.ui.LauncherUI"),
         "appPackage": os.getenv("APPIUM_APP_PACKAGE", "com.tencent.mm"),
-        "deviceName": os.getenv("APPIUM_DEVICE_NAME", "AKC7N18907000186"),
+        "deviceName": os.getenv("APPIUM_DEVICE_NAME", "HBSBB18912502970"),
         "newCommandTimeout": 7200,
         "noReset": True,
         "unicodeKeyboard": True,
