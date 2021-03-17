@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 import numpy as np
 import cv2
 from appium import webdriver
@@ -43,6 +45,18 @@ class Utils:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def load_json_file(file_name):
+        with open(file_name, encoding="utf-8") as f:
+            content = f.read()
+            return json.loads(content)
+
+    @staticmethod
+    def read_file(file_name):
+        with open(file_name, encoding="utf-8") as f:
+            content = f.read()
+            return content
 
     @staticmethod
     def get_tap_coordinate(source_path, template_path):
@@ -333,11 +347,41 @@ class MobileFunction:
         rect = self.get_rect(element)
         self.tap(rect["x"] + rect["width"] / 2, rect["y"] + rect["height"] / 2)
 
+    def change_context_to_web_view(self, web_view_content):
+        logger.info("Try to switch to web view: " + web_view_content)
+        count = 5
+        is_switch = False
+
+        current_context = self.driver.current_context
+        while count > 0:
+            time.sleep(2)
+            contexts = self.driver.contexts
+            if web_view_content in contexts:
+                if current_context != web_view_content:
+                    self.driver.switch_to.context(web_view_content)
+                    logger.info("Success to switch to webview: " + web_view_content)
+                    is_switch = True
+                    break
+                else:
+                    is_switch = True
+                    break
+            count = count - 1
+
+        if not is_switch:
+            raise Exception(
+                "Failed to switch webview to: {}. the contexts are: {}".format(web_view_content, self.driver.contexts)
+            )
+
 
 class AndroidMobilePageObject:
 
     def __init__(self):
         pass
+
+    # web_view_content = "WEBVIEW_com.tencent.mm:toolsmp"
+    @staticmethod
+    def web_view_content():
+        return "WEBVIEW_com.tencent.mm:toolsmp"
 
     @staticmethod
     def search_btn_in_home_page():
@@ -386,7 +430,6 @@ class AndroidMobilePageObject:
         # return (MobileBy.ID, "com.tencent.mm:id/anv")
         return (MobileBy.ID, "com.tencent.mm:id/ay5")
 
-
     # 服务按钮 com.tencent.mm:id/g33
     @staticmethod
     def menu_btn():
@@ -410,6 +453,65 @@ class AndroidMobilePageObject:
     @staticmethod
     def back_btn():
         return (MobileBy.ID, "com.tencent.mm:id/dn")
+
+    # webview page
+    # 公众号聊天界面
+    @staticmethod
+    def user_area_button_locator():
+        return (MobileBy.XPATH, "//android.widget.TextView[@text='用户专区']")
+
+    # 用户专区界面
+    @staticmethod
+    def user_info_button_locator():
+        return (MobileBy.XPATH, '//*[text()="个人信息"]')
+
+    # 个人信息界面
+    @staticmethod
+    def unbind_button_locator():
+        return (MobileBy.ID, "UnBinding")
+
+    # 账户绑定界面
+    @staticmethod
+    def certificate_number_locator():
+        return (MobileBy.ID, "CertNo")
+
+    @staticmethod
+    def phone_number_locator():
+        return (MobileBy.ID, "ContPhone")
+
+    @staticmethod
+    def verification_code_locator():
+        return (MobileBy.ID, "CheckCode")
+
+    @staticmethod
+    def agreement_locator():
+        return (MobileBy.ID, "chkAgreement")
+
+    @staticmethod
+    def title_in_band_page_locator():
+        return (MobileBy.CSS_SELECTOR, ".mui-content header .mui-title")
+
+    @staticmethod
+    def btn_tj_locator():
+        return (MobileBy.ID, "btn_tj")
+
+    @staticmethod
+    def banding_success_locator():
+        return (MobileBy.XPATH, '//div[contains(@class, "mui-card-content")]//*[text()="绑定成功" or text()="注册成功"]')
+
+    # 解除绑定界面
+    @staticmethod
+    def select_button_locator():
+        return (MobileBy.ID, "UnText")
+
+    @staticmethod
+    def commit_button_locator():
+        return (MobileBy.ID, "btn_tj")
+
+    @staticmethod
+    def unbind_successful_locator():
+        return (MobileBy.XPATH, '//*[text()="解绑成功"]')
+
 
 class IOSMobilePageObject:
 
@@ -506,6 +608,64 @@ class AndroidProcess:
         self.mobile_function.click(ele_target_item)
 
         # ele_title_in_chat = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
+
+    def start_to_bind(self, user_info_list):
+        # 进入用户专区
+        element = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.user_area_button_locator())
+        self.mobile_function.click(element)
+        logger.info('确保用户专区页面显示出来')
+        time.sleep(2)
+        self.mobile_function.change_context_to_web_view(AndroidMobilePageObject.web_view_content())
+        bind_success = False
+
+        for single_user in user_info_list:
+            element = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.user_info_button_locator())
+            user_area_home_url = self.driver.current_url
+
+            # 进入到个人信息页面 / 身份绑定页面
+            self.mobile_function.click(element)
+
+            try:
+                self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.commit_button_locator())
+                element = self.mobile_function.wait_for_element_visible(
+                    AndroidMobilePageObject.certificate_number_locator())
+                self.mobile_function.send_text(element, single_user["证件号码"])
+
+                element = self.mobile_function.wait_for_element_visible(
+                    AndroidMobilePageObject.phone_number_locator())
+                self.mobile_function.send_text(element, single_user["手机号码"])
+
+                element = self.mobile_function.wait_for_element_visible(
+                    AndroidMobilePageObject.verification_code_locator())
+                self.mobile_function.send_text(element, single_user["验证码"])
+
+                logger.info("同意用户隐私")
+                button = self.mobile_function.wait_for_element_presence(AndroidMobilePageObject.agreement_locator())
+                self.mobile_function.click(
+                    self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_band_page_locator()))
+                time.sleep(2)
+                self.mobile_function.click(button)
+
+                logger.info("点击确认提交")
+                self.mobile_function.click(
+                    self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.commit_button_locator()))
+                logger.info("绑定成功页面显示")
+                self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.banding_success_locator())
+                bind_success = True
+                break
+
+            except Exception as err:
+                if self.mobile_function.is_element_visible(AndroidMobilePageObject.unbind_button_locator()):
+                    logger.info("已有账户绑定")
+                    bind_success = True
+                    break
+                else:
+                    self.driver.get(user_area_home_url)
+                    time.sleep(3)
+                    continue
+
+        if not bind_success:
+            raise Exception("绑定用户失败")
 
     def send_message_then_calculating_time_taken_to_reply(self, value):
         value = value
@@ -637,7 +797,8 @@ class AndroidProcess:
             data.reply_from_script = message_all
 
             # 处理回复消息中的link
-            link_template_screenshot_list = data.link_template_screenshot.split("\n") if data.link_template_screenshot else []
+            link_template_screenshot_list = data.link_template_screenshot.split(
+                "\n") if data.link_template_screenshot else []
             link_screenshot_flag = 1
             link_screenshot_list = []
             if len(link_template_screenshot_list) > 0 and len(href_link_list) > 0:
@@ -829,7 +990,8 @@ class IOSProcess:
             data.reply_from_script = message
 
             # 处理回复消息中的link
-            link_template_screenshot_list = data.link_template_screenshot.split("\n") if data.link_template_screenshot else []
+            link_template_screenshot_list = data.link_template_screenshot.split(
+                "\n") if data.link_template_screenshot else []
             link_screenshot_flag = 1
             link_screenshot_list = []
             if len(link_template_screenshot_list) > 0 and len(href_link_list) > 0:
@@ -902,7 +1064,7 @@ def clean_data():
         os.makedirs(PATH("screenshot"))
 
 
-def android_steps(test_data_list, wechat_name):
+def android_steps(test_data_list, wechat_name, user_info_dict):
     desired_caps_android_wechat = {
         "platformName": "Android",
         "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", "8.1.0"),
@@ -926,6 +1088,15 @@ def android_steps(test_data_list, wechat_name):
 
     # 2. 进入公众号
     android_process.go_into_volkswagen_official_account(wechat_name)
+
+    # 2.1 绑定
+    android_process.start_to_bind(user_info_dict.get("user_list"))
+
+    driver.close_app()
+    time.sleep(2)
+    driver.launch_app()
+    android_process.go_into_volkswagen_official_account(wechat_name)
+
     # 3. 处理消息
     for test_data in test_data_list_copy:
         try:
@@ -950,7 +1121,8 @@ def android_steps(test_data_list, wechat_name):
                             except Exception:
                                 pass
                             time.sleep(2)
-                            driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'), desired_caps_android_wechat)
+                            driver = webdriver.Remote(os.getenv("APPIUM_URL", 'http://localhost:4723/wd/hub'),
+                                                      desired_caps_android_wechat)
                             android_process = AndroidProcess(driver)
                             android_process.go_into_volkswagen_official_account(wechat_name)
                             break
@@ -967,7 +1139,7 @@ def android_steps(test_data_list, wechat_name):
     logger.info("write_data_into_excel")
 
 
-def ios_steps(test_data_list, wechat_name):
+def ios_steps(test_data_list, wechat_name, user_info_dict):
     desired_caps_ios_wechat = {
         "platformName": "iOS",
         "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "14.1"),
@@ -1039,7 +1211,8 @@ def ios_steps(test_data_list, wechat_name):
                             except Exception:
                                 pass
                             time.sleep(2)
-                            driver = webdriver.Remote(os.getenv("WEBDRIVER_REMOTE", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
+                            driver = webdriver.Remote(os.getenv("WEBDRIVER_REMOTE", 'http://localhost:4723/wd/hub'),
+                                                      desired_caps_ios_wechat)
                             ios_process = IOSProcess(driver)
                             ios_process.go_into_volkswagen_official_account(wechat_name)
                             break
@@ -1058,6 +1231,25 @@ def ios_steps(test_data_list, wechat_name):
 
 if __name__ == '__main__':
     clean_data()
+    user_info_dict = {
+        "user_list": [
+            {
+                "证件号码": '513021198803156174',
+                "手机号码": '18002988714',
+                "验证码": "999999"
+            },
+            {
+                "证件号码": '330523199409033422',
+                "手机号码": '13758172509',
+                "验证码": "999999"
+            },
+            {
+                "证件号码": '520201198010215626',
+                "手机号码": '15085190808',
+                "验证码": "999999"
+            }
+        ]
+    }
     # 1. 从excel读取数据
     test_data_dict = Utils.load_data_from_excel(PATH("test_case_example.xlsx"))
     config_data = test_data_dict["config_data"]
@@ -1066,9 +1258,9 @@ if __name__ == '__main__':
     os_name = config_data["os"].lower()
 
     if os_name == "android":
-        android_steps(test_data_dict["test_data"], config_data["name"])
+        android_steps(test_data_dict["test_data"], config_data["name"], user_info_dict)
     elif os_name == "ios":
-        ios_steps(test_data_dict["test_data"], config_data["name"])
+        ios_steps(test_data_dict["test_data"], config_data["name"], user_info_dict)
     else:
         logger.error("请正确配置excel中config sheet中系统信息")
 
@@ -1087,5 +1279,3 @@ if __name__ == '__main__':
             parent_folder,
             "test_case_example.xlsx"
         ))
-
-
