@@ -1013,10 +1013,23 @@ class IOSProcess:
                 element = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.unbind_button_locator())
                 self.mobile_function.click(element)
 
-                logger.info('选择解绑原因')
+                logger.info('点击解绑原因:-请选择-')
                 button = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.select_button_locator())
-                self.driver.execute_script('arguments[0].value="其他"', button)
+                self.mobile_function.click(button)
                 time.sleep(2)
+
+                logger.info('选择解绑原因')
+                l = self.driver.get_window_size()
+                x = l['width']
+                y = l['height']
+
+                tool_bar = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.done_button_locator())
+                rect = tool_bar.rect
+                height = rect["y"]
+                TouchAction(self.driver).press(x=x * 3 / 4, y=y - 10).wait(1000).move_to(x=x * 3 / 4,
+                                                                                         y=height).release().perform()
+                time.sleep(2)
+                self.mobile_function.click(tool_bar)
 
                 logger.info('点击提交')
                 button = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.commit_button_locator_in_unband())
@@ -1375,20 +1388,23 @@ def android_steps(test_data_list, wechat_name, user_info_dict):
     logger.info("write_data_into_excel")
 
     # 解除绑定
-    driver.close_app()
-    time.sleep(2)
-    driver.launch_app()
-    android_process.go_into_volkswagen_official_account(wechat_name)
-    android_process.start_to_unband()
+    try:
+        driver.close_app()
+        time.sleep(2)
+        driver.launch_app()
+        android_process.go_into_volkswagen_official_account(wechat_name)
+        android_process.start_to_unband()
+    except:
+        pass
 
 
 def ios_steps(test_data_list, wechat_name, user_info_dict):
     desired_caps_ios_wechat = {
         "platformName": "iOS",
-        "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "14.1"),
+        "PlatformVersion": os.getenv('APP_DEVICE_VERSION', "12"),
         "deviceName": os.getenv('APP_DEVICE_NAME', "iPhone"),
         "automationName": "XCUITest",
-        "udid": os.getenv("APP_UDID", "05a9955da755df16df7d4b6b8c27115e143e2c35"),
+        "udid": os.getenv("APP_UDID", "029d553ea04ba899509dc0630fda19bdac61231a"),
         "bundleId": os.getenv("APP_BUNDLEIDENTIFIER", "com.tencent.xin"),
         "newCommandTimeout": 7200,
         "startIWDP": True,
@@ -1403,6 +1419,25 @@ def ios_steps(test_data_list, wechat_name, user_info_dict):
 
     driver = webdriver.Remote(os.getenv("WEBDRIVER_REMOTE", 'http://localhost:4723/wd/hub'), desired_caps_ios_wechat)
     ios_process = IOSProcess(driver)
+
+    # 2. 进入公众号
+    retry_count = 5
+    while retry_count > 0:
+        retry_count = retry_count - 1
+        try:
+            ios_process.go_into_volkswagen_official_account(wechat_name)
+            break
+        except Exception as e:
+            driver.close_app()
+            time.sleep(2)
+            driver.launch_app()
+
+
+    # 2.1 绑定
+    ios_process.start_to_bind(user_info_dict.get("user_list"))
+    driver.close_app()
+    time.sleep(2)
+    driver.launch_app()
 
     # 2. 进入公众号
     retry_count = 5
@@ -1470,6 +1505,25 @@ def ios_steps(test_data_list, wechat_name, user_info_dict):
     # 数据写进excel
     Utils.write_data_into_excel(PATH("test_case_example.xlsx"), test_data_list_copy)
     logger.info("write_data_into_excel")
+
+    try:
+        driver.close_app()
+        time.sleep(2)
+        driver.launch_app()
+        # 2. 进入公众号
+        retry_count = 5
+        while retry_count > 0:
+            retry_count = retry_count - 1
+            try:
+                ios_process.go_into_volkswagen_official_account(wechat_name)
+                break
+            except Exception as e:
+                driver.close_app()
+                time.sleep(2)
+                driver.launch_app()
+        ios_process.start_to_unband()
+    except:
+        pass
 
 
 if __name__ == '__main__':
