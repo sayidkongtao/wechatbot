@@ -609,6 +609,43 @@ class AndroidProcess:
 
         # ele_title_in_chat = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.title_in_chat())
 
+    def start_to_unband(self):
+        # 进入用户专区
+        try:
+            element = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.user_area_button_locator())
+            self.mobile_function.click(element)
+            logger.info('确保用户专区页面显示出来')
+            time.sleep(2)
+            self.mobile_function.change_context_to_web_view(AndroidMobilePageObject.web_view_content())
+
+            element = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.user_info_button_locator())
+            user_area_home_url = self.driver.current_url
+            # 进入到个人信息页面 / 身份绑定页面
+            self.mobile_function.click(element)
+
+            try:
+                element = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.unbind_button_locator())
+                self.mobile_function.click(element)
+
+                logger.info('选择解绑原因')
+                button = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.select_button_locator())
+                self.driver.execute_script('arguments[0].value="其他"', button)
+                time.sleep(2)
+
+                logger.info('点击提交')
+                button = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.commit_button_locator())
+                self.mobile_function.click(button)
+                self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.unbind_successful_locator())
+                logger.info("解除绑定成功")
+            except Exception as err:
+                if self.mobile_function.is_element_visible(AndroidMobilePageObject.phone_number_locator()):
+                    logger.info("解除绑定成功")
+                else:
+                    raise Exception("解除绑定失败: " + str(err))
+
+        except Exception as err:
+            logger.warning("解除绑定失败: " + str(err))
+
     def start_to_bind(self, user_info_list):
         # 进入用户专区
         element = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.user_area_button_locator())
@@ -1091,7 +1128,6 @@ def android_steps(test_data_list, wechat_name, user_info_dict):
 
     # 2.1 绑定
     android_process.start_to_bind(user_info_dict.get("user_list"))
-
     driver.close_app()
     time.sleep(2)
     driver.launch_app()
@@ -1137,6 +1173,13 @@ def android_steps(test_data_list, wechat_name, user_info_dict):
     # 数据写进excel
     Utils.write_data_into_excel(PATH("test_case_example.xlsx"), test_data_list_copy)
     logger.info("write_data_into_excel")
+
+    # 解除绑定
+    driver.close_app()
+    time.sleep(2)
+    driver.launch_app()
+    android_process.go_into_volkswagen_official_account(wechat_name)
+    android_process.start_to_unband()
 
 
 def ios_steps(test_data_list, wechat_name, user_info_dict):
