@@ -571,6 +571,80 @@ class IOSMobilePageObject:
     def back_btn():
         return (MobileBy.ACCESSIBILITY_ID, "关闭")
 
+    @staticmethod
+    def user_area_button_locator():
+        return (MobileBy.ACCESSIBILITY_ID, "用户专区")
+
+    @staticmethod
+    def user_info_button_locator():
+        return (
+        MobileBy.XPATH, '//XCUIElementTypeStaticText[@name="个人信息"]'
+    )
+
+    @staticmethod
+    def commit_button_locator():
+        return (MobileBy.ACCESSIBILITY_ID, "确认")
+
+    @staticmethod
+    def certificate_number_locator():
+        return (MobileBy.XPATH, '//XCUIElementTypeOther[starts-with(@name, "证件号码")]/following-sibling::XCUIElementTypeTextField')
+
+    @staticmethod
+    def phone_number_locator():
+        return (MobileBy.XPATH, '//XCUIElementTypeOther[starts-with(@name, "手机")]/following-sibling::XCUIElementTypeTextField')
+
+    @staticmethod
+    def verification_code_locator():
+        return (MobileBy.XPATH, '//XCUIElementTypeButton[@name="获取验证码"]/preceding-sibling::XCUIElementTypeTextField')
+
+    @staticmethod
+    def agreement_locator():
+        return (MobileBy.XPATH, "//XCUIElementTypeSwitch")
+
+    @staticmethod
+    def title_in_band_page_locator(cls):
+        pass
+
+    @staticmethod
+    def banding_success_locator():
+        return (MobileBy.XPATH, '(//XCUIElementTypeStaticText[@name="绑定成功" or @name="注册成功"])[2]')
+
+    @staticmethod
+    def unbind_button_locator():
+        return (MobileBy.IOS_PREDICATE, "name = '解除绑定'")
+
+    @staticmethod
+    def phone_info_label_locator():
+        return (MobileBy.XPATH, '//XCUIElementTypeOther[starts-with(@name, "手机")]')
+
+    @staticmethod
+    def close_button_locator():
+        return (MobileBy.ACCESSIBILITY_ID, '关闭')
+
+    @staticmethod
+    def user_is_bound_locator():
+        return (MobileBy.ACCESSIBILITY_ID, "提示")
+
+    @staticmethod
+    def confirm_button_for_pop_locator():
+        return (MobileBy.IOS_PREDICATE, 'label == "确定" AND name == "确定" AND value == "确定"')
+
+    @staticmethod
+    def select_button_locator():
+        return (MobileBy.XPATH, "//XCUIElementTypeOther[@value='- 请选择 -']")
+
+    @staticmethod
+    def unbind_successful_locator():
+        return (MobileBy.NAME, "解绑成功")
+
+    @staticmethod
+    def commit_button_locator_in_unband():
+        return (MobileBy.ACCESSIBILITY_ID, "提交")
+
+    @staticmethod
+    def done_button_locator():
+        return (MobileBy.ACCESSIBILITY_ID, "完成")
+
 
 class AndroidProcess:
 
@@ -611,6 +685,7 @@ class AndroidProcess:
 
     def start_to_unband(self):
         # 进入用户专区
+        logger.info("解绑用户")
         try:
             element = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.user_area_button_locator())
             self.mobile_function.click(element)
@@ -648,6 +723,7 @@ class AndroidProcess:
 
     def start_to_bind(self, user_info_list):
         # 进入用户专区
+        logger.info("绑定用户")
         element = self.mobile_function.wait_for_element_visible(AndroidMobilePageObject.user_area_button_locator())
         self.mobile_function.click(element)
         logger.info('确保用户专区页面显示出来')
@@ -922,6 +998,120 @@ class IOSProcess:
 
         # ele_title_in_chat = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.title_in_chat())
 
+    def start_to_unband(self):
+        # 进入用户专区
+        try:
+            element = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.user_area_button_locator())
+            self.mobile_function.click(element)
+            logger.info('确保用户专区页面显示出来')
+            element = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.user_info_button_locator())
+            #  user_area_home_url = self.driver.current_url
+            # 进入到个人信息页面 / 身份绑定页面
+            self.mobile_function.click(element)
+
+            try:
+                element = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.unbind_button_locator())
+                self.mobile_function.click(element)
+
+                logger.info('选择解绑原因')
+                button = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.select_button_locator())
+                self.driver.execute_script('arguments[0].value="其他"', button)
+                time.sleep(2)
+
+                logger.info('点击提交')
+                button = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.commit_button_locator_in_unband())
+                self.mobile_function.click(button)
+                self.mobile_function.wait_for_element_visible(IOSMobilePageObject.unbind_successful_locator())
+                logger.info("解除绑定成功")
+            except Exception as err:
+                if self.mobile_function.is_element_visible(IOSMobilePageObject.phone_number_locator()):
+                    logger.info("解除绑定成功")
+                else:
+                    raise Exception("解除绑定失败: " + str(err))
+
+        except Exception as err:
+            logger.warning("解除绑定失败: " + str(err))
+
+    def start_to_bind(self, user_info_list):
+        bind_success = False
+
+        for single_user in user_info_list:
+            # 进入用户专区
+            element = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.user_area_button_locator())
+            self.mobile_function.click(element)
+            logger.info('确保用户专区页面显示出来')
+            time.sleep(2)
+
+            element = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.user_info_button_locator())
+
+            # 进入到个人信息页面 / 身份绑定页面
+            self.mobile_function.click(element)
+
+            try:
+                self.mobile_function.wait_for_element_visible(IOSMobilePageObject.commit_button_locator())
+                element = self.mobile_function.wait_for_element_visible(
+                    IOSMobilePageObject.certificate_number_locator())
+                self.mobile_function.send_text(element, single_user["证件号码"])
+
+                element = self.mobile_function.wait_for_element_visible(
+                    IOSMobilePageObject.phone_number_locator())
+                self.mobile_function.send_text(element, single_user["手机号码"])
+
+                element = self.mobile_function.wait_for_element_visible(
+                    IOSMobilePageObject.verification_code_locator())
+                self.mobile_function.send_text(element, single_user["验证码"])
+
+                # 向上滑动
+                element = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.phone_info_label_locator())
+                rect = element.rect
+
+                x = rect['x']
+                y = rect['y']
+
+                element2 = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.close_button_locator())
+                rect2 = element2.rect
+                x2 = rect2['x']
+                y2 = rect2['y']
+
+                TouchAction(self.driver).press(x=x + 50, y=y).wait(500).move_to(x=x2 + 50, y=y2).release().perform()
+                time.sleep(2)
+
+                logger.info("同意用户隐私")
+                button = self.mobile_function.wait_for_element_presence(IOSMobilePageObject.agreement_locator())
+                self.mobile_function.click(button)
+
+                logger.info("点击确认提交")
+                self.mobile_function.click(
+                    self.mobile_function.wait_for_element_visible(IOSMobilePageObject.commit_button_locator()))
+
+                logger.info("绑定成功页面显示")
+                self.mobile_function.wait_for_element_visible(IOSMobilePageObject.banding_success_locator())
+                bind_success = True
+                break
+            except Exception as err:
+                if self.mobile_function.is_element_visible(IOSMobilePageObject.unbind_button_locator()):
+                    logger.info("已有账户绑定")
+                    bind_success = True
+                    logger.info("关闭绑定页面")
+                    button = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.close_button_locator())
+                    self.mobile_function.click(button)
+                    break
+                elif self.mobile_function.is_element_visible(IOSMobilePageObject.user_is_bound_locator()):
+                    logger.info("关闭提示页面")
+                    button = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.confirm_button_for_pop_locator())
+                    self.mobile_function.click(button)
+                    logger.info("关闭绑定页面")
+                    button = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.close_button_locator())
+                    self.mobile_function.click(button)
+                else:
+                    logger.info("关闭绑定页面")
+                    button = self.mobile_function.wait_for_element_visible(IOSMobilePageObject.close_button_locator())
+                    self.mobile_function.click(button)
+                    continue
+
+        if not bind_success:
+            raise Exception("绑定用户失败")
+
     def send_message_then_calculating_time_taken_to_reply(self, value, wechat_name):
         value = value
         logger.info("发送信息: " + value)
@@ -1102,19 +1292,29 @@ def clean_data():
 
 
 def android_steps(test_data_list, wechat_name, user_info_dict):
+    chrome_driver_path = PATH(os.path.join("chrome_driver", "chromedriver_77_0_3865_40"))
     desired_caps_android_wechat = {
         "platformName": "Android",
-        "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", "8.1.0"),
+        "platformVersion": os.getenv("APPIUM_DEVICE_VERSION", "9"),
         "automationName": os.getenv("APPIUM_AUTOMATION_NAME", "UiAutomator2"),
         "appActivity": os.getenv("APPIUM_APP_ACTIVITY", "com.tencent.mm.ui.LauncherUI"),
         "appPackage": os.getenv("APPIUM_APP_PACKAGE", "com.tencent.mm"),
-        "deviceName": os.getenv("APPIUM_DEVICE_NAME", "HBSBB18912502970"),
+        "deviceName": os.getenv("APPIUM_DEVICE_NAME", "AYKDU18110014925"),
         "newCommandTimeout": 7200,
         "noReset": True,
         "unicodeKeyboard": True,
         'resetKeyboard': True,
-        'chromeOptions': {'androidProcess': 'com.tencent.mm:tools'}
+        "chromedriverExecutable": chrome_driver_path,
+        'chromeOptions': {'androidProcess': 'com.tencent.mm:tools', 'w3c': False},
+        "recreateChromeDriverSessions": True
     }
+
+    try:
+        os.system("chmod +x {}".format(chrome_driver_path))
+        logger.info("Success to set x to file {}".format(chrome_driver_path))
+    except Exception as err:
+        logger.error(err)
+        logger.error("Failed to set x to file {}".format(chrome_driver_path))
 
     # 1. 从excel读取数据
     test_data_list_copy = test_data_list[1:]
@@ -1277,6 +1477,11 @@ if __name__ == '__main__':
     user_info_dict = {
         "user_list": [
             {
+                "证件号码": '520201198010215626',
+                "手机号码": '15085190808',
+                "验证码": "999999"
+            },
+            {
                 "证件号码": '513021198803156174',
                 "手机号码": '18002988714',
                 "验证码": "999999"
@@ -1284,11 +1489,6 @@ if __name__ == '__main__':
             {
                 "证件号码": '330523199409033422',
                 "手机号码": '13758172509',
-                "验证码": "999999"
-            },
-            {
-                "证件号码": '520201198010215626',
-                "手机号码": '15085190808',
                 "验证码": "999999"
             }
         ]
